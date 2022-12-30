@@ -1,0 +1,15 @@
+
+-- +migrate Up
+
+CREATE TABLE IF NOT EXISTS `group` (
+    id INTEGER PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    deleted_at DATETIME
+);
+
+-- +migrate Down
+
+DROP TABLE `group`;
