@@ -43,13 +43,13 @@ func (r *repository[T]) GetAll() (*[]T, error) {
 	return &entities, nil
 }
 
-func (r *repository[T]) Where(params *T) (*[]T, error) {
+func (r *repository[T]) Where(params *T) ([]T, error) {
 	var entities []T
 	err := r.db.Where(&params).Find(&entities).Error
 	if err != nil {
 		return nil, err
 	}
-	return &entities, nil
+	return entities, nil
 }
 
 func (r *repository[T]) Update(entity *T) error {
