@@ -1,0 +1,19 @@
+FROM golang:1.19-alpine
+
+WORKDIR $GOPATH/app
+
+RUN pwd
+# COPY go.mod .
+# COPY go.sum .
+
+COPY . .
+RUN go mod download
+
+WORKDIR $GOPATH/app/cmd/web
+
+RUN go env -w GO111MODULE=auto
+RUN go build -o testapp
+RUN ls
+
+EXPOSE 8080
+CMD ["./testapp"]

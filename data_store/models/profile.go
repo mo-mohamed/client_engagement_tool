@@ -3,7 +3,7 @@ package models
 import "time"
 
 type Profile struct {
-	ID        int        `gorm:"column:ID; primaryKey"`
+	ID        int        `gorm:"column:id; primaryKey"`
 	FirstName *string    `gorm:"column:first_name"`
 	LastName  *string    `gorm:"column:last_name"`
 	MDN       string     `gorm:"column:mdn"`
