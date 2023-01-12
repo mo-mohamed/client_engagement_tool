@@ -1,5 +1,5 @@
 development:
     dialect: mysql
-    datasource: ${DBUSER}:P${DBPASSWORD}@tcp(${DBHOST}:${DBPORT})/${DBNAME}?parseTime=true
+    datasource: ${DBUSER}:${DBPASSWORD}@tcp(${DBHOST}:${DBPORT})/${DBNAME}?parseTime=true
     dir: .
     table: migrations
