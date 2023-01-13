@@ -2,6 +2,7 @@ package sms
 
 import (
 	"context"
+	interfaces "customer_engagement/comm/clients"
 	"errors"
 	"fmt"
 	"sync"
@@ -10,7 +11,7 @@ import (
 
 type SmsProcessor struct {
 	Concurrency   int
-	JobsStream    chan Request
+	JobsStream    chan interfaces.ICommunication
 	ResultsStream chan Response
 	Done          chan interface{}
 	ctx           context.Context
@@ -18,10 +19,11 @@ type SmsProcessor struct {
 }
 
 func NewSmsProcessor(concurrency int) ISmsProcessor {
+
 	ctx, ctxCancelFn := context.WithCancel(context.TODO())
 	return &SmsProcessor{
 		Concurrency:   concurrency,
-		JobsStream:    make(chan Request, concurrency),
+		JobsStream:    make(chan interfaces.ICommunication, concurrency),
 		ResultsStream: make(chan Response, concurrency),
 		Done:          make(chan interface{}),
 		ctx:           ctx,
@@ -33,16 +35,16 @@ func (p *SmsProcessor) Stop() {
 	p.ctxCancelFn()
 }
 
-func (p *SmsProcessor) AddBatch(jobs []Request) {
-	for i, job := range jobs {
+func (p *SmsProcessor) AddBatch(jobs []interfaces.ICommunication) {
+	for _, job := range jobs {
 		p.JobsStream <- job
-		fmt.Println("Added job", i)
+		// fmt.Println("Added job", i)
 	}
 
 	//done writing to the jobs channel, close it out
-	fmt.Println("closing channel")
+	// fmt.Println("closing channel")
 	close(p.JobsStream)
-	fmt.Println("done closing channel")
+	// fmt.Println("done closing channel")
 }
 
 func (p *SmsProcessor) Results() <-chan Response {
@@ -68,10 +70,10 @@ func (p *SmsProcessor) Run() {
 
 func (p *SmsProcessor) doWork(wg *sync.WaitGroup) {
 	defer wg.Done()
-	fmt.Println("Spawning")
-	defer func() {
-		fmt.Println("Exited")
-	}()
+	// fmt.Println("Spawning")
+	// defer func() {
+	// 	fmt.Println("Exited")
+	// }()
 	for {
 		select {
 		case job, ok := <-p.JobsStream:
@@ -79,9 +81,11 @@ func (p *SmsProcessor) doWork(wg *sync.WaitGroup) {
 				// reading from an empty channel
 				return
 			}
-			fmt.Println("got job", job)
-			job.ExecFn()
+			// fmt.Println("got job", job)
+			// job.ExecFn()
+			// p.processor.send
 			// simulate work (should be sending SMS)
+			job.Send()
 			time.Sleep(time.Second * 1)
 
 			// do the actual work and send the results back to the channel

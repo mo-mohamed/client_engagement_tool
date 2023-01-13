@@ -1,5 +1,9 @@
 package sms
 
+import (
+	interfaces "customer_engagement/comm/clients"
+)
+
 type ISms interface {
 	Send(Request) Response
 }
@@ -7,6 +11,6 @@ type ISms interface {
 type ISmsProcessor interface {
 	Run()
 	Results() <-chan Response
-	AddBatch([]Request)
+	AddBatch([]interfaces.ICommunication)
 	Stop()
 }
