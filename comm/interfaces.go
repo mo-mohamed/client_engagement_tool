@@ -1,16 +1,12 @@
-package sms
+package comm
 
-import (
-	interfaces "customer_engagement/comm/clients"
-)
-
-type ISms interface {
-	Send(Request) Response
-}
-
-type ISmsProcessor interface {
+type IJobPool interface {
 	Run()
 	Results() <-chan Response
-	AddBatch([]interfaces.ICommunication)
+	AddBatch([]ICommunication)
 	Stop()
+}
+
+type ICommunication interface {
+	Send() error
 }

@@ -1,10 +1,4 @@
-package sms
-
-type Request struct {
-	Destination string
-	Body        string
-	// ExecFn      func() error
-}
+package comm
 
 type Response struct {
 	Error  error
