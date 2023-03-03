@@ -2,7 +2,7 @@ package service
 
 import (
 	communication "customer_engagement/comm"
-	communicationClients "customer_engagement/comm/clients/sms"
+	commJobs "customer_engagement/comm/jobs"
 	"fmt"
 	"strconv"
 )
@@ -14,7 +14,7 @@ func (*CommService) Dispatch(groupId int) {
 		pool := communication.NewComJobPool(2)
 		var jobs []communication.ICommunication
 		for i := 0; i < 10; i++ {
-			j := communicationClients.NewSms("+12:"+strconv.Itoa(i), "hi there!")
+			j := commJobs.NewSms("+12:"+strconv.Itoa(i), "hi there!")
 			jobs = append(jobs, j)
 		}
 
