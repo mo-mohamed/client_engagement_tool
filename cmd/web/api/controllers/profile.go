@@ -5,7 +5,6 @@ import (
 	dbconfig "customer_engagement/data_store/config"
 	db_models "customer_engagement/data_store/models"
 	repository "customer_engagement/data_store/repository"
-	"fmt"
 	"strconv"
 
 	"encoding/json"
@@ -20,7 +19,6 @@ func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var profileVM viewModels.Profile
 		err := json.NewDecoder(r.Body).Decode(&profileVM)
-		fmt.Printf("%+v\n", profileVM)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -58,7 +56,6 @@ func (ProfileController) AllByGroup() func(w http.ResponseWriter, r *http.Reques
 		profiles := make([]viewModels.Profile, 0)
 		pRepo := repository.NewRepository[db_models.Profile](dbconfig.DB)
 		dbprofiles, err := pRepo.Where(&db_models.Profile{GroupID: &group_id})
-		fmt.Println(dbprofiles, "This is the profiles")
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
@@ -67,7 +64,6 @@ func (ProfileController) AllByGroup() func(w http.ResponseWriter, r *http.Reques
 			profiles = append(profiles, profileVM.FromDTO(v))
 		}
 
-		fmt.Println(profiles, "This is the profiles")
 		jsonResponse, err := json.Marshal(profiles)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
