@@ -2,6 +2,7 @@ package main
 
 import (
 	"customer_engagement/cmd/web/api/controllers"
+	"customer_engagement/consumers"
 	dbconfig "customer_engagement/data_store/config"
 	"fmt"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 func main() {
 	setupDB()
+	startConsumers()
 	var groupController controllers.GroupController
 	var profileController controllers.ProfileController
 	var broadcastController controllers.BroadcastController
@@ -38,10 +40,16 @@ func setupDB() {
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 	dsn := dbUser + ":" + dbPassword + "@tcp" + "(" + dbHost + ":" + dbPort + ")/" + dbName + "?" + "parseTime=true&loc=Local"
+	fmt.Println("Initializing database connection")
 	db_conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		os.Exit(1)
 	}
-	fmt.Println("Initializing database completed")
+	fmt.Println("Successful connection to database")
 	dbconfig.DB = db_conn
+}
+
+func startConsumers() {
+	fmt.Println("Starting consumers")
+	go consumers.NewGroupSMSConsumer().Run()
 }

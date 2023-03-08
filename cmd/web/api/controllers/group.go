@@ -28,7 +28,7 @@ func (GroupController) All() func(http.ResponseWriter, *http.Request) {
 		var vmGroup viewModels.Group
 		vmGroups := make([]viewModels.Group, 0)
 		for _, v := range *dbGroups {
-			vmGroups = append(vmGroups, vmGroup.FromDTO(v))
+			vmGroups = append(vmGroups, vmGroup.FromDatabaseEntity(v))
 		}
 
 		w.Header().Set("Content-Type", "application/json")
@@ -51,14 +51,14 @@ func (GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		dbGroup := group.ToDTO()
+		dbGroup := group.ToDatabaseEntity()
 		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
 		err = gRepo.Add(&dbGroup)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		group = group.FromDTO(dbGroup)
+		group = group.FromDatabaseEntity(dbGroup)
 		jsonResponse, err := json.Marshal(group)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
@@ -98,7 +98,7 @@ func (GroupController) Deactivate() func(w http.ResponseWriter, r *http.Request)
 		}
 
 		var vmGroup viewModels.Group
-		g := vmGroup.FromDTO(*dbGroup)
+		g := vmGroup.FromDatabaseEntity(*dbGroup)
 		jsonResponse, err := json.Marshal(g)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)

@@ -3,6 +3,8 @@ package viewModels
 import (
 	db_models "customer_engagement/data_store/models"
 	"time"
+
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Group struct {
@@ -14,13 +16,13 @@ type Group struct {
 	Active    bool       `json:"active"`
 }
 
-func (g Group) ToDTO() db_models.Group {
+func (g Group) ToDatabaseEntity() db_models.Group {
 	return db_models.Group{
 		Name: g.Name,
 	}
 }
 
-func (g Group) FromDTO(dbGroup db_models.Group) Group {
+func (g Group) FromDatabaseEntity(dbGroup db_models.Group) Group {
 	return_group := Group{
 		Name:      dbGroup.Name,
 		CreatedAt: dbGroup.CreatedAt,
@@ -36,4 +38,34 @@ func (g Group) FromDTO(dbGroup db_models.Group) Group {
 	}
 
 	return return_group
+}
+
+type BroadcastRequest struct {
+	GroupId     int    `json:"group_id" validate:"required"`
+	MessageBody string `json:"message_body" validate:"required"`
+}
+
+type ValidationError struct {
+	Field string
+	Tag   string
+	Value string
+}
+
+func (bcr *BroadcastRequest) Validate() (bool, []*ValidationError) {
+	validation := validator.New()
+	err := validation.Struct(bcr)
+
+	if err != nil {
+		var errors []*ValidationError
+		for _, err := range err.(validator.ValidationErrors) {
+			el := ValidationError{
+				Field: err.Field(),
+				Tag:   err.Tag(),
+				Value: err.Param(),
+			}
+			errors = append(errors, &el)
+		}
+		return false, errors
+	}
+	return true, nil
 }

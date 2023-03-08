@@ -4,9 +4,10 @@ import (
 	"os"
 )
 
-func GetClient() IGroupQueue {
+func GetClient() *AwsQueueClient {
 	if os.Getenv("QUEUE_CLIENT") == "aws" {
-		return &AwsQueueClient{}
+		c := newSQS()
+		return &c
 	}
 
 	return nil

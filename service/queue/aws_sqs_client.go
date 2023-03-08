@@ -10,12 +10,18 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
-type AwsQueueClient struct{}
+type AwsQueueClient struct {
+	client sqsiface.SQSAPI
+}
 
 type SendRequest struct {
 	QueueURL   string
 	Body       string
 	Attributes []Attribute
+}
+
+type ReceiveRequest struct {
+	QueueURL string
 }
 
 type Attribute struct {
@@ -24,20 +30,20 @@ type Attribute struct {
 	Type  string
 }
 
-func (*AwsQueueClient) Enqueue(request SendRequest) error {
-	sqsClient := newSQS(os.Getenv("AWS_SQS_REGION"), os.Getenv("AWS_SQS_ENDPOINT"))
-	_, err := sendMessage(sqsClient, request)
-	return err
+func newSQS() AwsQueueClient {
+	cfg := aws.Config{
+		Region:   aws.String(os.Getenv("AWS_SQS_REGION")),
+		Endpoint: aws.String(os.Getenv("AWS_SQS_ENDPOINT")),
+	}
+	sess := session.Must(session.NewSession(&cfg))
+	return AwsQueueClient{
+		client: sqs.New(sess),
+	}
 }
 
-func newSQS(region, endpoint string) sqsiface.SQSAPI {
-	cfg := aws.Config{
-		Region:   aws.String(region),
-		Endpoint: aws.String(endpoint),
-	}
-
-	sess := session.Must(session.NewSession(&cfg))
-	return sqs.New(sess)
+func (awsQueue *AwsQueueClient) Enqueue(request SendRequest) error {
+	_, err := sendMessage(awsQueue.client, request)
+	return err
 }
 
 func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessageOutput, error) {
@@ -49,6 +55,8 @@ func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessa
 			DataType:    aws.String(attr.Type),
 		}
 	}
+
+	fmt.Println(attrs)
 
 	sqsMessage := &sqs.SendMessageInput{
 		QueueUrl:          aws.String(request.QueueURL),
@@ -62,4 +70,8 @@ func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessa
 	}
 
 	return output, nil
+}
+
+func (awsQueue *AwsQueueClient) ReceiveMessage(request *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
+	return awsQueue.client.ReceiveMessage(request)
 }
