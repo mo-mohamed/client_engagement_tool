@@ -51,6 +51,13 @@ func (GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		ok, errors := group.Validate()
+		if !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(errors)
+			return
+		}
+
 		dbGroup := group.ToDatabaseEntity()
 		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
 		err = gRepo.Add(&dbGroup)

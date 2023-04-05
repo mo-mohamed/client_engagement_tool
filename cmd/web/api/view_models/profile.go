@@ -1,8 +1,14 @@
+/*
+Holds profiles related to/from database objects convertions and API's input validations
+*/
+
 package viewModels
 
 import (
 	db_models "customer_engagement/data_store/models"
 	"time"
+
+	"gopkg.in/go-playground/validator.v9"
 )
 
 type Profile struct {
@@ -17,7 +23,7 @@ type Profile struct {
 	GroupID   *int       `json:"group_id"`
 }
 
-func (p Profile) ToDTO() db_models.Profile {
+func (p Profile) ToDatabaseEntity() db_models.Profile {
 	return db_models.Profile{
 		FirstName: p.FirstName,
 		LastName:  p.LastName,
@@ -26,7 +32,7 @@ func (p Profile) ToDTO() db_models.Profile {
 	}
 }
 
-func (Profile) FromDTO(dbProfile db_models.Profile) Profile {
+func (Profile) FromDatabaseEntity(dbProfile db_models.Profile) Profile {
 	returnProfile := Profile{
 		FirstName: dbProfile.FirstName,
 		LastName:  dbProfile.LastName,
@@ -45,4 +51,13 @@ func (Profile) FromDTO(dbProfile db_models.Profile) Profile {
 	}
 
 	return returnProfile
+}
+
+func (p *Profile) Validate() (bool, []*ValidationError) {
+	validation := validator.New()
+	err := validation.Struct(p)
+	if err != nil {
+		return false, convertErrors(err.(validator.ValidationErrors))
+	}
+	return true, nil
 }

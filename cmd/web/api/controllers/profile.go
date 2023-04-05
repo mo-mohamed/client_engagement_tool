@@ -24,7 +24,14 @@ func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		dbProfile := profileVM.ToDTO()
+		ok, errors := profileVM.Validate()
+		if !ok {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(errors)
+			return
+		}
+
+		dbProfile := profileVM.ToDatabaseEntity()
 
 		pRepo := repository.NewRepository[db_models.Profile](dbconfig.DB)
 		err = pRepo.Add(&dbProfile)
@@ -32,7 +39,7 @@ func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		profileVM = profileVM.FromDTO(dbProfile)
+		profileVM = profileVM.FromDatabaseEntity(dbProfile)
 		jsonResponse, err := json.Marshal(profileVM)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
@@ -61,7 +68,7 @@ func (ProfileController) AllByGroup() func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		for _, v := range dbprofiles {
-			profiles = append(profiles, profileVM.FromDTO(v))
+			profiles = append(profiles, profileVM.FromDatabaseEntity(v))
 		}
 
 		jsonResponse, err := json.Marshal(profiles)

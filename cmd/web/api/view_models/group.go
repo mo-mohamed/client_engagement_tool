@@ -1,3 +1,6 @@
+/*
+Holds groups related to/from database objects convertions and API's input validations
+*/
 package viewModels
 
 import (
@@ -41,32 +44,26 @@ func (g Group) FromDatabaseEntity(dbGroup db_models.Group) Group {
 	return return_group
 }
 
+func (g *Group) Validate() (bool, []*ValidationError) {
+	validation := validator.New()
+	err := validation.Struct(g)
+	if err != nil {
+		return false, convertErrors(err.(validator.ValidationErrors))
+	}
+	return true, nil
+}
+
 type BroadcastRequest struct {
 	GroupId     int    `json:"group_id" validate:"required"`
 	MessageBody string `json:"message_body" validate:"required"`
 }
 
-type ValidationError struct {
-	Field string
-	Tag   string
-	Value string
-}
-
 func (bcr *BroadcastRequest) Validate() (bool, []*ValidationError) {
 	validation := validator.New()
 	err := validation.Struct(bcr)
-	var errors []*ValidationError
 
 	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			el := ValidationError{
-				Field: err.Field(),
-				Tag:   err.Tag(),
-				Value: err.Param(),
-			}
-			errors = append(errors, &el)
-		}
-		return false, errors
+		return false, convertErrors(err.(validator.ValidationErrors))
 	}
 	return true, nil
 }
