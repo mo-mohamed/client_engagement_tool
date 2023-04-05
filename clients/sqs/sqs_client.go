@@ -1,8 +1,7 @@
-package queue
+package sqsClient
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
@@ -10,7 +9,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
-type AwsQueueClient struct {
+type AwsQueue struct {
 	client sqsiface.SQSAPI
 }
 
@@ -20,28 +19,24 @@ type SendRequest struct {
 	Attributes []Attribute
 }
 
-type ReceiveRequest struct {
-	QueueURL string
-}
-
 type Attribute struct {
 	Key   string
 	Value string
 	Type  string
 }
 
-func newSQS() AwsQueueClient {
+func New(region, endpoint string) AwsQueue {
 	cfg := aws.Config{
-		Region:   aws.String(os.Getenv("AWS_SQS_REGION")),
-		Endpoint: aws.String(os.Getenv("AWS_SQS_ENDPOINT")),
+		Region:   aws.String(region),
+		Endpoint: aws.String(endpoint),
 	}
 	sess := session.Must(session.NewSession(&cfg))
-	return AwsQueueClient{
+	return AwsQueue{
 		client: sqs.New(sess),
 	}
 }
 
-func (awsQueue *AwsQueueClient) Enqueue(request SendRequest) error {
+func (awsQueue *AwsQueue) Enqueue(request SendRequest) error {
 	_, err := sendMessage(awsQueue.client, request)
 	return err
 }
@@ -72,6 +67,10 @@ func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessa
 	return output, nil
 }
 
-func (awsQueue *AwsQueueClient) ReceiveMessage(request *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
-	return awsQueue.client.ReceiveMessage(request)
+func (awsQueue *AwsQueue) ReceiveMessage(r *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
+	return awsQueue.client.ReceiveMessage(r)
+}
+
+func (awsQueue *AwsQueue) DeleteMessage(d *sqs.DeleteMessageInput) (*sqs.DeleteMessageOutput, error) {
+	return awsQueue.client.DeleteMessage(d)
 }

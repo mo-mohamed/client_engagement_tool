@@ -1,3 +1,18 @@
+/*
+This packahe holds functionality for a group sms consumer.
+
+It starts a number of monitored workers according to the defined number of concurrency.
+
+Keep fetching from the specific SMS groups queue.
+
+Usage:
+
+c := consumer.NewGroupSMSConsumer()
+c.Run()
+
+It can be gracefully stopped by calling c.Stop()
+*/
+
 package groupSmsConsumer
 
 import (
@@ -9,15 +24,12 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 
-	"customer_engagement/service/queue"
+	sqsClient "customer_engagement/clients/sqs"
 )
 
 type GroupSmsConsumer struct {
-	queueUrl    string
 	concurrency int
 	done        chan interface{}
 	ctx         context.Context
@@ -58,12 +70,10 @@ func (consumer *GroupSmsConsumer) doWork(wg *sync.WaitGroup, id int) {
 		select {
 
 		case <-consumer.ctx.Done():
-			// p.ResultsStream <- models.Response{Status: 100, Error: errors.New("cancelled")}
-			fmt.Println("Cancelled request")
 			return
 		default:
 			time.Sleep(time.Second * 1)
-			sqsClient := newSQS(os.Getenv("AWS_SQS_REGION"), os.Getenv("AWS_SQS_ENDPOINT"))
+			awsSqsClient := sqsClient.New(os.Getenv("AWS_SQS_REGION"), os.Getenv("AWS_SQS_ENDPOINT"))
 
 			request := &sqs.ReceiveMessageInput{
 				QueueUrl:              aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),
@@ -71,9 +81,8 @@ func (consumer *GroupSmsConsumer) doWork(wg *sync.WaitGroup, id int) {
 				WaitTimeSeconds:       aws.Int64(3),
 				MessageAttributeNames: aws.StringSlice([]string{"All"}),
 			}
-			res, err := queue.GetClient().ReceiveMessage(request)
 
-			fmt.Println(res)
+			res, err := awsSqsClient.ReceiveMessage(request)
 
 			if err != nil {
 				fmt.Println("Error from sms queue: ", err)
@@ -88,18 +97,7 @@ func (consumer *GroupSmsConsumer) doWork(wg *sync.WaitGroup, id int) {
 				QueueUrl:      aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),
 				ReceiptHandle: res.Messages[0].ReceiptHandle,
 			}
-			sqsClient.DeleteMessage(d)
-
+			awsSqsClient.DeleteMessage(d)
 		}
 	}
-}
-
-func newSQS(region, endpoint string) sqsiface.SQSAPI {
-	cfg := aws.Config{
-		Region:   aws.String(region),
-		Endpoint: aws.String(endpoint),
-	}
-
-	sess := session.Must(session.NewSession(&cfg))
-	return sqs.New(sess)
 }

@@ -20,12 +20,21 @@ func (r *repository[T]) Add(entity *T) error {
 
 func (r *repository[T]) GetById(id int) (*T, error) {
 	var entity T
-	err := r.db.Model(&entity).Where("id = ?", id).FirstOrInit(&entity).Error
+	err := r.db.Model(&entity).Where("id = ?", id).First(&entity).Error
 	if err != nil {
 		return nil, err
 	}
 
 	return &entity, nil
+}
+
+func (r *repository[T]) Exists(id int) (*T, bool) {
+	var entity T
+	err := r.db.Model(&entity).Where("id = ?", id).First(&entity).Error
+	if err != nil {
+		return nil, false
+	}
+	return &entity, true
 }
 
 func (r *repository[T]) Get(params *T) *T {

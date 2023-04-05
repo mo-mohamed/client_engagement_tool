@@ -1,8 +1,9 @@
 package viewModels
 
 import (
-	db_models "customer_engagement/data_store/models"
 	"time"
+
+	db_models "customer_engagement/data_store/models"
 
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -54,9 +55,9 @@ type ValidationError struct {
 func (bcr *BroadcastRequest) Validate() (bool, []*ValidationError) {
 	validation := validator.New()
 	err := validation.Struct(bcr)
+	var errors []*ValidationError
 
 	if err != nil {
-		var errors []*ValidationError
 		for _, err := range err.(validator.ValidationErrors) {
 			el := ValidationError{
 				Field: err.Field(),

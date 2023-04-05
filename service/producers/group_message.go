@@ -1,7 +1,7 @@
 package producers
 
 import (
-	"customer_engagement/service/queue"
+	sqsClient "customer_engagement/clients/sqs"
 	"fmt"
 	"os"
 	"strconv"
@@ -11,28 +11,29 @@ import (
 type GroupMessageProducer struct{}
 
 func (*GroupMessageProducer) EnqueueGroupBroadcast(groupId int, message string) error {
-	attributes := make([]queue.Attribute, 0)
-	attributes = append(attributes, queue.Attribute{
+	attributes := make([]sqsClient.Attribute, 0)
+	attributes = append(attributes, sqsClient.Attribute{
 		Key:   "GroupId",
 		Value: strconv.Itoa(groupId),
 		Type:  "String",
 	})
-	attributes = append(attributes, queue.Attribute{
+	attributes = append(attributes, sqsClient.Attribute{
 		Key:   "DateEnqueued",
 		Value: time.Now().UTC().String(),
 		Type:  "String",
 	})
 
-	req := queue.SendRequest{
+	req := sqsClient.SendRequest{
 		QueueURL:   os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME"),
 		Body:       message,
 		Attributes: attributes,
 	}
 
-	fmt.Println("send request:", req)
-	err := queue.GetClient().Enqueue(req)
+	client := sqsClient.New(os.Getenv("AWS_SQS_REGION"), os.Getenv("AWS_SQS_ENDPOINT"))
+	err := client.Enqueue(req)
 	if err != nil {
 		fmt.Println(err)
+		return err
 	}
-	return err
+	return nil
 }

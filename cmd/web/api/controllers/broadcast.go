@@ -28,14 +28,15 @@ func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Requ
 
 		groupId := bcr.GroupId
 		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
-		dbGroup, err := gRepo.GetById(groupId)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+
+		dbGroup, exists := gRepo.Exists(groupId)
+		if !exists {
+			http.Error(w, "Group not found", http.StatusNotFound)
 			return
 		}
 
 		producer := producers.GroupMessageProducer{}
-		err = producer.EnqueueGroupBroadcast(dbGroup.ID, bcr.MessageBody)
+		err := producer.EnqueueGroupBroadcast(dbGroup.ID, bcr.MessageBody)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
