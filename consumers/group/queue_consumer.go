@@ -13,7 +13,7 @@ c.Run()
 It can be gracefully stopped by calling c.Stop()
 */
 
-package groupSmsConsumer
+package groupQueueConsumer
 
 import (
 	"context"
@@ -29,17 +29,17 @@ import (
 	sqsClient "customer_engagement/clients/sqs"
 )
 
-type GroupSmsConsumer struct {
+type GroupQueueConsumer struct {
 	concurrency int
 	done        chan interface{}
 	ctx         context.Context
 	ctxCancelFn context.CancelFunc
 }
 
-func NewGroupSMSConsumer() *GroupSmsConsumer {
+func NewGroupQueueConsumer() *GroupQueueConsumer {
 	ctx, ctxCancelFn := context.WithCancel(context.TODO())
 	concurreny, _ := strconv.Atoi(os.Getenv("GROUP_MS_CONSUMER_CONCURRENCY"))
-	return &GroupSmsConsumer{
+	return &GroupQueueConsumer{
 		concurrency: concurreny,
 		done:        make(chan interface{}),
 		ctx:         ctx,
@@ -47,11 +47,11 @@ func NewGroupSMSConsumer() *GroupSmsConsumer {
 	}
 }
 
-func (consumer *GroupSmsConsumer) Stop() {
+func (consumer *GroupQueueConsumer) Stop() {
 	consumer.ctxCancelFn()
 }
 
-func (consumer *GroupSmsConsumer) Run() {
+func (consumer *GroupQueueConsumer) Run() {
 	var wg sync.WaitGroup
 	for i := 0; i < consumer.concurrency; i++ {
 		wg.Add(1)
@@ -64,7 +64,7 @@ func (consumer *GroupSmsConsumer) Run() {
 
 }
 
-func (consumer *GroupSmsConsumer) doWork(wg *sync.WaitGroup, id int) {
+func (consumer *GroupQueueConsumer) doWork(wg *sync.WaitGroup, id int) {
 	defer wg.Done()
 	for {
 		select {
@@ -92,6 +92,8 @@ func (consumer *GroupSmsConsumer) doWork(wg *sync.WaitGroup, id int) {
 			if len(res.Messages) == 0 {
 				continue
 			}
+
+			// TODO: Process per group
 
 			d := &sqs.DeleteMessageInput{
 				QueueUrl:      aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),

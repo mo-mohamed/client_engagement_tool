@@ -51,5 +51,5 @@ func setupDB() {
 
 func startConsumers() {
 	fmt.Println("Starting consumers")
-	go consumers.NewGroupSMSConsumer().Run()
+	go consumers.NewGroupQueueConsumer().Run()
 }

@@ -37,12 +37,11 @@ func New(region, endpoint string) AwsQueue {
 }
 
 func (awsQueue *AwsQueue) Enqueue(request SendRequest) error {
-	_, err := sendMessage(awsQueue.client, request)
+	_, err := enqueue(awsQueue.client, request)
 	return err
 }
 
-func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessageOutput, error) {
-
+func enqueue(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessageOutput, error) {
 	attrs := make(map[string]*sqs.MessageAttributeValue, len(request.Attributes))
 	for _, attr := range request.Attributes {
 		attrs[attr.Key] = &sqs.MessageAttributeValue{
@@ -50,8 +49,6 @@ func sendMessage(sqsClient sqsiface.SQSAPI, request SendRequest) (*sqs.SendMessa
 			DataType:    aws.String(attr.Type),
 		}
 	}
-
-	fmt.Println(attrs)
 
 	sqsMessage := &sqs.SendMessageInput{
 		QueueUrl:          aws.String(request.QueueURL),
