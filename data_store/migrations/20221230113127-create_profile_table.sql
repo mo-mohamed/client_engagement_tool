@@ -9,10 +9,10 @@ CREATE TABLE IF NOT EXISTS `profile` (
 
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    deleted_at DATETIME,
+    deleted_at DATETIME
 
-    group_id INTEGER,
-    CONSTRAINT fk_group_id FOREIGN KEY (`group_id`) REFERENCES `group`(`id`)
+    -- group_id INTEGER,
+    -- CONSTRAINT fk_profile_group FOREIGN KEY (`group_id`) REFERENCES `group`(`id`)
 
 );
 

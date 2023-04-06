@@ -20,7 +20,6 @@ type Profile struct {
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
 	Active    bool       `json:"active"`
-	GroupID   *int       `json:"group_id"`
 }
 
 func (p Profile) ToDatabaseEntity() db_models.Profile {
@@ -28,7 +27,6 @@ func (p Profile) ToDatabaseEntity() db_models.Profile {
 		FirstName: p.FirstName,
 		LastName:  p.LastName,
 		MDN:       *p.MDN,
-		GroupID:   p.GroupID,
 	}
 }
 
@@ -41,7 +39,6 @@ func (Profile) FromDatabaseEntity(dbProfile db_models.Profile) Profile {
 		UpdatedAt: dbProfile.UpdatedAt,
 		DeletedAt: dbProfile.DeletedAt,
 		ID:        dbProfile.ID,
-		GroupID:   dbProfile.GroupID,
 	}
 
 	if dbProfile.DeletedAt == nil {

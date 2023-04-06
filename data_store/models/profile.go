@@ -10,8 +10,7 @@ type Profile struct {
 	CreatedAt time.Time  `gorm:"column:created_at; autoCreateTime"`
 	UpdatedAt time.Time  `gorm:"column:updated_at; autoCreateTime"`
 	DeletedAt *time.Time `gorm:"column:deleted_at"`
-	GroupID   *int       `gorm:"column:group_id"`
-	Group     Group
+	Groups    []Group    `gorm:"many2many:group_profile"`
 }
 
 func (Profile) TableName() string {
