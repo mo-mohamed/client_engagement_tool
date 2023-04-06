@@ -94,6 +94,27 @@ func (consumer *GroupQueueConsumer) doWork(wg *sync.WaitGroup, id int) {
 			}
 
 			// TODO: Process per group
+			// countProfiles := 10
+			// batshsize := 2
+			// batches := countProfiles / batshsize
+			// skip := 0
+			// for i := 0; i < batches; i++ {
+			// 	fmt.Println("Starting a btahc")
+			// 	var jobs []comm.ICommunication
+			// 	for i := 0; i < batshsize; i++ {
+			// 		jobs = append(jobs, dd.NewSms(""+strconv.Itoa(i), "hello there"))
+			// 	}
+			// 	pool := comm.NewComJobPool(10)
+			// 	pool.AddBatch(jobs)
+			// 	pool.Run()
+			// 	skip = skip + batshsize
+			// 	for elem := range pool.Results() {
+			// 		fmt.Println(elem)
+			// 	}
+			// 	fmt.Println("Batch ended")
+			// }
+
+			// fmt.Println("--------Finalized Batch----------")
 
 			d := &sqs.DeleteMessageInput{
 				QueueUrl:      aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),

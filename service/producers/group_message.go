@@ -6,6 +6,8 @@ import (
 	"os"
 	"strconv"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type GroupMessageProducer struct{}
@@ -20,6 +22,11 @@ func (*GroupMessageProducer) EnqueueGroupBroadcast(groupId int, message string) 
 	attributes = append(attributes, sqsClient.Attribute{
 		Key:   "DateEnqueued",
 		Value: time.Now().UTC().String(),
+		Type:  "String",
+	})
+	attributes = append(attributes, sqsClient.Attribute{
+		Key:   "InternalID",
+		Value: uuid.NewString(),
 		Type:  "String",
 	})
 

@@ -8,5 +8,5 @@ type IJobPool interface {
 }
 
 type ICommunication interface {
-	Send() error
+	Process() error
 }

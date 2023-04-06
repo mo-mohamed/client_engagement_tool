@@ -12,7 +12,7 @@ func NewSms(mdn string, body string) *sms {
 	}
 }
 
-func (s *sms) Send() error {
+func (s *sms) Process() error {
 
 	// simulate work
 	return nil

@@ -67,8 +67,12 @@ func (p *ComJobPool) doWork(wg *sync.WaitGroup) {
 				// reading from a closed channel, all jobs are taken
 				return
 			}
-			job.Send()
-			p.resultsStream <- Response{Status: 500, Error: errors.New("err")}
+			err := job.Process()
+			if err != nil {
+				p.resultsStream <- Response{Status: 500, Error: errors.New("err")}
+			} else {
+				p.resultsStream <- Response{Status: 200, Error: nil}
+			}
 		case <-p.ctx.Done():
 			// p.ResultsStream <- models.Response{Status: 100, Error: errors.New("cancelled")}
 			return
