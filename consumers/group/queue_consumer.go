@@ -17,7 +17,9 @@ package groupQueueConsumer
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 	"sync"
@@ -27,6 +29,8 @@ import (
 	"github.com/aws/aws-sdk-go/service/sqs"
 
 	sqsClient "customer_engagement/clients/sqs"
+	"customer_engagement/comm"
+	dd "customer_engagement/comm/jobs"
 )
 
 type GroupQueueConsumer struct {
@@ -91,36 +95,68 @@ func (consumer *GroupQueueConsumer) doWork(wg *sync.WaitGroup, id int) {
 
 			if len(res.Messages) == 0 {
 				continue
+			} else {
+
+				// Start processing group - to be refactored
+				sqsMessage := res.Messages[0]
+				groupId, _ := strconv.Atoi(*sqsMessage.MessageAttributes["GroupId"].StringValue)
+				// fmt.Println(groupId)
+				// dateString := sqsMessage.MessageAttributes["DateEnqueued"]
+				// fmt.Printf("Message: %+v", dateString)
+				// fmt.Println()
+				dateEn, _ := time.Parse("2006-01-02 15:04:05 +0000 UTC", *sqsMessage.MessageAttributes["DateEnqueued"].StringValue)
+				// internalId := sqsMessage.MessageAttributes["InternalID"].StringValue
+				// fmt.Println(internalId)
+
+				dbHost := os.Getenv("DB_HOST")
+				dbUser := os.Getenv("DB_USER")
+				dbPassword := os.Getenv("DB_PASSWORD")
+				dbPort := os.Getenv("DB_PORT")
+				dbName := os.Getenv("DB_NAME")
+				dsn := dbUser + ":" + dbPassword + "@tcp" + "(" + dbHost + ":" + dbPort + ")/" + dbName + "?" + "parseTime=true&loc=Local"
+
+				db_conn, _ := sql.Open("mysql", dsn)
+
+				numProfiles := `
+					SELECT COUNT(*) FROM group_profile gp JOIN profile p on gp.profile_id = p.id where gp.group_id = ? AND gp.created_at <= ?;
+				`
+				var count int
+				err = db_conn.QueryRow(numProfiles, groupId, dateEn).Scan(&count)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				fmt.Println("Number of rows are: ", count)
+				batchSize := 2
+				numOfBatches := count / batchSize
+
+				for i := 0; i < numOfBatches; i++ {
+					fmt.Println("--------starting a batch------------")
+					var jobs []comm.ICommunication
+					for i := 0; i < batchSize; i++ {
+						jobs = append(jobs, dd.NewSms(""+strconv.Itoa(i), "hello there"))
+					}
+					pool := comm.NewComJobPool(2)
+					pool.AddBatch(jobs)
+					go pool.Run()
+
+					fmt.Println("ok we will wait for messages")
+					for i := 0; i < batchSize; i++ {
+						<-pool.Results()
+					}
+
+					fmt.Println("--------ending a batch------------")
+				}
+				fmt.Println(numOfBatches)
+
+				// TODO: Process per group
+
+				d := &sqs.DeleteMessageInput{
+					QueueUrl:      aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),
+					ReceiptHandle: res.Messages[0].ReceiptHandle,
+				}
+				awsSqsClient.DeleteMessage(d)
 			}
-
-			// TODO: Process per group
-			// countProfiles := 10
-			// batshsize := 2
-			// batches := countProfiles / batshsize
-			// skip := 0
-			// for i := 0; i < batches; i++ {
-			// 	fmt.Println("Starting a btahc")
-			// 	var jobs []comm.ICommunication
-			// 	for i := 0; i < batshsize; i++ {
-			// 		jobs = append(jobs, dd.NewSms(""+strconv.Itoa(i), "hello there"))
-			// 	}
-			// 	pool := comm.NewComJobPool(10)
-			// 	pool.AddBatch(jobs)
-			// 	pool.Run()
-			// 	skip = skip + batshsize
-			// 	for elem := range pool.Results() {
-			// 		fmt.Println(elem)
-			// 	}
-			// 	fmt.Println("Batch ended")
-			// }
-
-			// fmt.Println("--------Finalized Batch----------")
-
-			d := &sqs.DeleteMessageInput{
-				QueueUrl:      aws.String(os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME")),
-				ReceiptHandle: res.Messages[0].ReceiptHandle,
-			}
-			awsSqsClient.DeleteMessage(d)
 		}
 	}
 }

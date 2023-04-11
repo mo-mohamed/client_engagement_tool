@@ -61,10 +61,29 @@ func (r *repository[T]) Where(params *T) ([]T, error) {
 	return entities, nil
 }
 
+func (r *repository[T]) WhereWithPreload(params *T, preloads ...string) ([]T, error) {
+	var entities []T
+	err := r.DBWithPreloads(preloads).Where(&params).Find(&entities).Error
+	if err != nil {
+		return nil, err
+	}
+	return entities, nil
+}
+
 func (r *repository[T]) Update(entity *T) error {
 	return r.db.Save(&entity).Error
 }
 
 func (r repository[T]) UpdateAll(entities *[]T) error {
 	return r.db.Save(&entities).Error
+}
+
+func (r *repository[T]) DBWithPreloads(preloads []string) *gorm.DB {
+	dbConn := r.db
+
+	for _, preload := range preloads {
+		dbConn = dbConn.Preload(preload)
+	}
+
+	return dbConn
 }

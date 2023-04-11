@@ -12,6 +12,34 @@ import (
 
 type ProfileController struct{}
 
+func (ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var groupProfileVm viewModels.GroupProfile
+		err := json.NewDecoder(r.Body).Decode(&groupProfileVm)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		dbGroupProfile := groupProfileVm.ToDatabaseEntity()
+
+		pRepo := repository.NewRepository[db_models.GroupProfile](dbconfig.DB)
+		err = pRepo.Add(&dbGroupProfile)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+		}
+
+		groupProfileVm = groupProfileVm.FromDatabaseEntity(dbGroupProfile)
+		jsonResponse, err := json.Marshal(groupProfileVm)
+		if err != nil {
+			http.Error(w, "Error occured", http.StatusBadRequest)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		w.Write(jsonResponse)
+	}
+}
+
 func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var profileVM viewModels.Profile
@@ -60,7 +88,7 @@ func (ProfileController) AllByGroup() func(w http.ResponseWriter, r *http.Reques
 		// var profileVM viewModels.Profile
 		// profiles := make([]viewModels.Profile, 0)
 		// pRepo := repository.NewRepository[db_models.Profile](dbconfig.DB)
-		// dbprofiles, err := pRepo.Where(&db_models.Profile{GroupID: &group_id})
+		// dbprofiles, err := pRepo.
 		// if err != nil {
 		// 	http.Error(w, err.Error(), http.StatusBadRequest)
 		// 	return

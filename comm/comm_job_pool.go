@@ -3,6 +3,7 @@ package comm
 import (
 	"context"
 	"errors"
+	"fmt"
 	"sync"
 )
 
@@ -69,8 +70,10 @@ func (p *ComJobPool) doWork(wg *sync.WaitGroup) {
 			}
 			err := job.Process()
 			if err != nil {
+				fmt.Println("error")
 				p.resultsStream <- Response{Status: 500, Error: errors.New("err")}
 			} else {
+				fmt.Println("success")
 				p.resultsStream <- Response{Status: 200, Error: nil}
 			}
 		case <-p.ctx.Done():
