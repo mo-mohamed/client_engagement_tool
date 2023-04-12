@@ -2,6 +2,7 @@ package consumers
 
 import (
 	group "customer_engagement/consumers/message"
+	"customer_engagement/queue"
 	sqsClient "customer_engagement/queue/awssqs"
 	"fmt"
 	"os"
@@ -10,11 +11,13 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+
+	gbc "customer_engagement/message_processors/group_broadcast"
 )
 
 type PRO struct{}
 
-func (p PRO) Process() error {
+func (p PRO) Process(*queue.Message) error {
 	fmt.Println("ooook")
 	return nil
 }
@@ -32,7 +35,7 @@ func NewGroupQueueConsumer() int.IConsumer {
 		Client: &s,
 	}
 
-	pro := PRO{}
+	pro := gbc.GroupMessageProcessor{}
 
-	return group.NewMessageConsumer(2, v, pro)
+	return group.NewMessageConsumer(2, v, &pro)
 }

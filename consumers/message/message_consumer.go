@@ -57,10 +57,8 @@ func (c *QueueConsumer) Run() {
 		go c.doWork(&wg, i)
 
 	}
-
 	wg.Wait()
 	close(c.done)
-
 }
 
 func (c *QueueConsumer) doWork(wg *sync.WaitGroup, id int) {
@@ -81,12 +79,16 @@ func (c *QueueConsumer) doWork(wg *sync.WaitGroup, id int) {
 				continue
 			}
 
-			err = c.processor.Process()
+			err = c.processor.Process(res)
 			if err != nil {
 				//TODO log this entry
 				fmt.Println(err)
 			}
-			c.client.Delete(c.queueUrl, res.ReceiptHandler)
+			err = c.client.Delete(c.queueUrl, res.ReceiptHandler)
+			if err != nil {
+				//TODO log this entry
+				fmt.Println("errro from the queue")
+			}
 		}
 	}
 }
