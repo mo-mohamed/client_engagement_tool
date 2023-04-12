@@ -5,11 +5,21 @@ import (
 	dbconfig "customer_engagement/data_store/config"
 	db_models "customer_engagement/data_store/models"
 	repository "customer_engagement/data_store/repository"
+	Queue "customer_engagement/queue"
+	sqsClient "customer_engagement/queue/awssqs"
+	"fmt"
+	"os"
+	"strconv"
+	"time"
 
 	"encoding/json"
 
-	"customer_engagement/service/producers"
+	newprod "customer_engagement/producers"
 	"net/http"
+
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/google/uuid"
 )
 
 type BroadcastController struct{}
@@ -35,12 +45,48 @@ func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Requ
 			return
 		}
 
-		producer := producers.GroupMessageProducer{}
-		err := producer.EnqueueGroupBroadcast(dbGroup.ID, bcr.MessageBody)
+		_, err := produceGroup(dbGroup.ID, bcr.MessageBody)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
+		} else {
+			fmt.Println("SUCCEDDED")
 		}
 
 	}
+}
+
+func produceGroup(groupId int, message string) (string, error) {
+	cfg := aws.Config{
+		Region:   aws.String(os.Getenv("AWS_SQS_REGION")),
+		Endpoint: aws.String(os.Getenv("AWS_SQS_ENDPOINT")),
+	}
+
+	sess := session.Must(session.NewSession(&cfg))
+	client := sqsClient.NewSqs(sess)
+	s := newprod.NewGroupProducer(client)
+
+	attributes := make([]Queue.Attribute, 0)
+	attributes = append(attributes, Queue.Attribute{
+		Key:   "GroupId",
+		Value: strconv.Itoa(groupId),
+		Type:  "String",
+	})
+	attributes = append(attributes, Queue.Attribute{
+		Key:   "DateEnqueued",
+		Value: time.Now().UTC().String(),
+		Type:  "String",
+	})
+	attributes = append(attributes, Queue.Attribute{
+		Key:   "InternalID",
+		Value: uuid.NewString(),
+		Type:  "String",
+	})
+
+	messageRequest := Queue.SendRequest{
+		QueueUrl:   os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME"),
+		Body:       message,
+		Attributes: attributes,
+	}
+	return s.Produce(&messageRequest)
 }

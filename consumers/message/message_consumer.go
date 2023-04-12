@@ -10,7 +10,10 @@ import (
 )
 
 type QueueConfig struct {
-	Url    string
+	// Full url of the queue
+	Url string
+
+	// A client that can interact with the queue
 	Client *qu.IQueueClient
 }
 
@@ -24,7 +27,12 @@ type QueueConsumer struct {
 	processor   interfaces.IProcessor
 }
 
-func NewMessageConsumer(numOfWorkers int, config QueueConfig, processor interfaces.IProcessor) *QueueConsumer {
+/*
+Creates a new message consumer.
+
+Returns in instance of the interface `interfaces.IProcessor`
+*/
+func NewMessageConsumer(numOfWorkers int, config QueueConfig, processor interfaces.IProcessor) interfaces.IConsumer {
 	ctx, ctxCancelFn := context.WithCancel(context.TODO())
 	c := &QueueConsumer{
 		concurrency: numOfWorkers,
@@ -43,7 +51,6 @@ func (c *QueueConsumer) Stop() {
 }
 
 func (c *QueueConsumer) Run() {
-	fmt.Println("Running")
 	var wg sync.WaitGroup
 	for i := 0; i < c.concurrency; i++ {
 		wg.Add(1)
