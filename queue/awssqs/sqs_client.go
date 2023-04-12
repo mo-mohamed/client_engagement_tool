@@ -60,20 +60,11 @@ func (s sqsClient) Receieve(queueUrl string) (*queue.Message, error) {
 		return nil, nil
 	}
 
-	attrs := make([]queue.Attribute, 0)
-	for k, v := range res.Messages[0].MessageAttributes {
-		attrs = append(attrs, queue.Attribute{
-			Key:   k,
-			Value: *v.StringValue,
-			Type:  *v.DataType,
-		})
-	}
-
 	return &queue.Message{
 		ID:             *res.Messages[0].MessageId,
 		ReceiptHandler: *res.Messages[0].ReceiptHandle,
 		Body:           *res.Messages[0].Body,
-		Attributes:     attrs,
+		Attributes:     mapAttributes(res.Messages[0]),
 	}, nil
 }
 
@@ -87,4 +78,18 @@ func (s sqsClient) Delete(queueUrl string, rcId string) error {
 		return fmt.Errorf("error deleting message from the queue: %w", err)
 	}
 	return nil
+}
+
+func mapAttributes(m *sqs.Message) map[string]queue.Attribute {
+	attrs := make(map[string]queue.Attribute)
+	for k, v := range m.MessageAttributes {
+		attrs[k] = queue.Attribute{
+			Key:   k,
+			Type:  *v.DataType,
+			Value: *v.StringValue,
+		}
+	}
+
+	return attrs
+
 }

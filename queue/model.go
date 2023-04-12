@@ -35,5 +35,5 @@ type Message struct {
 	// Message body.
 	Body string
 	// List of attributes associated with the queue message.
-	Attributes []Attribute
+	Attributes map[string]Attribute
 }
