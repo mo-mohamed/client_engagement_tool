@@ -14,7 +14,7 @@ import (
 
 	"encoding/json"
 
-	newprod "customer_engagement/producers"
+	newprod "customer_engagement/producers/message"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
