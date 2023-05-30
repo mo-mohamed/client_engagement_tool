@@ -71,7 +71,6 @@ func (c *QueueConsumer) doWork(wg *sync.WaitGroup, id int) {
 			res, err := c.client.Receieve(c.queueUrl)
 			if err != nil {
 				//TODO log this entry
-				// fmt.Println("errro from the queue")
 				continue
 			}
 

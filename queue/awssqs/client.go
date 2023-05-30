@@ -1,4 +1,4 @@
-package sqsClient
+package client
 
 import (
 	"customer_engagement/queue"
