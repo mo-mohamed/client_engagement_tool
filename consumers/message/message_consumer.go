@@ -14,7 +14,7 @@ type QueueConfig struct {
 	Url string
 
 	// A client that can interact with the queue
-	Client *qu.IQueueClient
+	Client qu.IQueueClient
 }
 
 type QueueConsumer struct {
@@ -39,7 +39,7 @@ func NewMessageConsumer(numOfWorkers int, config QueueConfig, processor interfac
 		done:        make(chan interface{}),
 		ctx:         ctx,
 		ctxCancelFn: ctxCancelFn,
-		client:      *config.Client,
+		client:      config.Client,
 		queueUrl:    config.Url,
 		processor:   processor,
 	}

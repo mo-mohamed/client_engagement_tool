@@ -13,11 +13,11 @@ type GroupMessageProcessor struct {
 	bSize int
 }
 
-type ProfileMessage struct {
-	Mdn     string
-	GroupId int
-	Id      int
-	Body    string
+type profileMessage struct {
+	mdn     string
+	groupId int
+	id      int
+	body    string
 }
 
 func NewGroupMessageProcessor(batchSize int) *GroupMessageProcessor {
@@ -40,7 +40,7 @@ func (g *GroupMessageProcessor) Process(message *queue.Message) error {
 
 		var wg sync.WaitGroup
 		for _, p := range profilesData {
-			p.Body = message.Body
+			p.body = message.Body
 			wg.Add(1)
 			go process(&p, &wg)
 		}
@@ -51,7 +51,7 @@ func (g *GroupMessageProcessor) Process(message *queue.Message) error {
 	return nil
 }
 
-func process(p *ProfileMessage, wg *sync.WaitGroup) {
+func process(p *profileMessage, wg *sync.WaitGroup) {
 	// TODO Send the message here
 	fmt.Println("Profile processed")
 	fmt.Printf("%+v \n", p)
@@ -69,17 +69,17 @@ func getNumberOfProfiles(groupId int, dateEnqueued time.Time) int {
 	return count
 }
 
-func getProfilesBatch(groupId, limit, offest int, dateEnqueued time.Time) []ProfileMessage {
+func getProfilesBatch(groupId, limit, offest int, dateEnqueued time.Time) []profileMessage {
 	query := `
-		SELECT gp.group_id as GroupId,
-			   p.id as Id,
-			   p.mdn as Mdn
+		SELECT gp.group_id as groupId,
+			   p.id as id,
+			   p.mdn as mdn
 		FROM group_profile gp 
 		INNER JOIN profile p on gp.profile_id = p.id
 		WHERE gp.group_id = ? AND gp.created_at <= ? limit ?, ?;
 	`
 
-	var profiles []ProfileMessage
+	var profiles []profileMessage
 	dbc.DB.Raw(query, groupId, dateEnqueued, offest, limit).Scan(&profiles)
 	return profiles
 }

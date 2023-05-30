@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	viewModels "customer_engagement/cmd/web/api/view_models"
-	dbconfig "customer_engagement/data_store/config"
-	db_models "customer_engagement/data_store/models"
+	vmodels "customer_engagement/cmd/web/api/view_models"
+	dbc "customer_engagement/data_store/config"
+	dbm "customer_engagement/data_store/models"
 	repository "customer_engagement/data_store/repository"
 
 	"encoding/json"
@@ -14,7 +14,7 @@ type ProfileController struct{}
 
 func (ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var groupProfileVm viewModels.GroupProfile
+		var groupProfileVm vmodels.GroupProfile
 		err := json.NewDecoder(r.Body).Decode(&groupProfileVm)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -23,7 +23,7 @@ func (ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Reques
 
 		dbGroupProfile := groupProfileVm.ToDatabaseEntity()
 
-		pRepo := repository.NewRepository[db_models.GroupProfile](dbconfig.DB)
+		pRepo := repository.NewRepository[dbm.GroupProfile](dbc.DB)
 		err = pRepo.Add(&dbGroupProfile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -42,7 +42,7 @@ func (ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Reques
 
 func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var profileVM viewModels.Profile
+		var profileVM vmodels.Profile
 		err := json.NewDecoder(r.Body).Decode(&profileVM)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -58,7 +58,7 @@ func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 
 		dbProfile := profileVM.ToDatabaseEntity()
 
-		pRepo := repository.NewRepository[db_models.Profile](dbconfig.DB)
+		pRepo := repository.NewRepository[dbm.Profile](dbc.DB)
 		err = pRepo.Add(&dbProfile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -72,38 +72,6 @@ func (ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		w.Write(jsonResponse)
-	}
-
-}
-
-func (ProfileController) AllByGroup() func(w http.ResponseWriter, r *http.Request) {
-	return func(w http.ResponseWriter, r *http.Request) {
-		return
-		// vars := mux.Vars(r)
-		// group_id, err := strconv.Atoi(vars["group_id"])
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusBadRequest)
-		// 	return
-		// }
-		// var profileVM viewModels.Profile
-		// profiles := make([]viewModels.Profile, 0)
-		// pRepo := repository.NewRepository[db_models.Profile](dbconfig.DB)
-		// dbprofiles, err := pRepo.
-		// if err != nil {
-		// 	http.Error(w, err.Error(), http.StatusBadRequest)
-		// 	return
-		// }
-		// for _, v := range dbprofiles {
-		// 	profiles = append(profiles, profileVM.FromDatabaseEntity(v))
-		// }
-
-		// jsonResponse, err := json.Marshal(profiles)
-		// if err != nil {
-		// 	http.Error(w, "Error occured", http.StatusBadRequest)
-		// }
-		// w.Header().Set("Content-Type", "application/json")
-		// w.WriteHeader(http.StatusOK)
-		// w.Write(jsonResponse)
 	}
 
 }

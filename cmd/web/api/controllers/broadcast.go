@@ -1,11 +1,12 @@
 package controllers
 
 import (
-	viewModels "customer_engagement/cmd/web/api/view_models"
-	dbconfig "customer_engagement/data_store/config"
-	db_models "customer_engagement/data_store/models"
+	vmodels "customer_engagement/cmd/web/api/view_models"
+	dbc "customer_engagement/data_store/config"
+	dbm "customer_engagement/data_store/models"
 	repository "customer_engagement/data_store/repository"
-	Queue "customer_engagement/queue"
+	groupProducer "customer_engagement/producers/message"
+	queue "customer_engagement/queue"
 	sqsClient "customer_engagement/queue/awssqs"
 	"fmt"
 	"os"
@@ -14,11 +15,11 @@ import (
 
 	"encoding/json"
 
-	newprod "customer_engagement/producers/message"
 	"net/http"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/google/uuid"
 )
 
@@ -27,7 +28,7 @@ type BroadcastController struct{}
 func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		var bcr viewModels.BroadcastRequest
+		var bcr vmodels.BroadcastRequest
 		json.NewDecoder(r.Body).Decode(&bcr)
 		ok, errors := bcr.Validate()
 		if !ok {
@@ -37,7 +38,7 @@ func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Requ
 		}
 
 		groupId := bcr.GroupId
-		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
+		gRepo := repository.NewRepository[dbm.Group](dbc.DB)
 
 		dbGroup, exists := gRepo.Exists(groupId)
 		if !exists {
@@ -63,27 +64,27 @@ func produceGroup(groupId int, message string) (string, error) {
 	}
 
 	sess := session.Must(session.NewSession(&cfg))
-	client := sqsClient.NewSqs(sess)
-	s := newprod.NewGroupProducer(client)
+	client := sqsClient.NewSqs(sqs.New(sess))
+	s := groupProducer.NewGroupProducer(client)
 
-	attributes := make([]Queue.Attribute, 0)
-	attributes = append(attributes, Queue.Attribute{
+	attributes := make([]queue.Attribute, 0)
+	attributes = append(attributes, queue.Attribute{
 		Key:   "GroupId",
 		Value: strconv.Itoa(groupId),
 		Type:  "String",
 	})
-	attributes = append(attributes, Queue.Attribute{
+	attributes = append(attributes, queue.Attribute{
 		Key:   "DateEnqueued",
 		Value: time.Now().UTC().String(),
 		Type:  "String",
 	})
-	attributes = append(attributes, Queue.Attribute{
+	attributes = append(attributes, queue.Attribute{
 		Key:   "InternalID",
 		Value: uuid.NewString(),
 		Type:  "String",
 	})
 
-	messageRequest := Queue.SendRequest{
+	messageRequest := queue.SendRequest{
 		QueueUrl:   os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME"),
 		Body:       message,
 		Attributes: attributes,

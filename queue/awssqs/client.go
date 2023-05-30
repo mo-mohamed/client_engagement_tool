@@ -5,19 +5,19 @@ import (
 	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
+	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
 )
 
 type sqsClient struct {
 	// Referneces to AWS SQS client package. Used for direct communication with AWS SQS.
-	client *sqs.SQS
+	client sqsiface.SQSAPI
 }
 
 // Constructs a new AWS SQS client.
-func NewSqs(session *session.Session) queue.IQueueClient {
+func NewSqs(client sqsiface.SQSAPI) queue.IQueueClient {
 	return sqsClient{
-		client: sqs.New(session),
+		client: client,
 	}
 }
 

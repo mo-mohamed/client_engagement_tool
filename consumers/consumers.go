@@ -10,21 +10,21 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 
 	gbc "customer_engagement/message_processors/group_broadcast"
 )
 
 func NewGroupQueueConsumer() interfaces.IConsumer {
-	cfg := aws.Config{
+
+	sqsSession := session.Must(session.NewSession(&aws.Config{
 		Region:   aws.String(os.Getenv("AWS_SQS_REGION")),
 		Endpoint: aws.String(os.Getenv("AWS_SQS_ENDPOINT")),
-	}
+	}))
 
-	sess := session.Must(session.NewSession(&cfg))
-	client := sqsclient.NewSqs(sess)
 	queueConfig := messageConsumer.QueueConfig{
 		Url:    os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME"),
-		Client: &client,
+		Client: sqsclient.NewSqs(sqs.New(sqsSession)),
 	}
 
 	profilesBatchSize, _ := strconv.Atoi(os.Getenv("PROFILES_BATCH_SIZE"))

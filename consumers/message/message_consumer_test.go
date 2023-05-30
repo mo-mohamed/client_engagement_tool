@@ -35,7 +35,7 @@ func TestConsumer(t *testing.T) {
 
 	queueConfig := QueueConfig{
 		Url:    "TestURL",
-		Client: &clientMock,
+		Client: clientMock,
 	}
 
 	processorMock := processorMock{processed: false}
@@ -58,7 +58,7 @@ func TestNumberOfConsurrency(t *testing.T) {
 
 	queueConfig := QueueConfig{
 		Url:    "TestURL",
-		Client: &clientMock,
+		Client: clientMock,
 	}
 	processorMock := processorMock{}
 	c := NewMessageConsumer(concurrency, queueConfig, &processorMock)

@@ -25,7 +25,6 @@ func main() {
 	router.HandleFunc("/group/create", groupController.Create()).Methods("POST")
 	router.HandleFunc("/group/deactivate/{id}", groupController.Deactivate()).Methods("POST")
 	router.HandleFunc("/profile/create", profileController.Create()).Methods("POST")
-	router.HandleFunc("/group/{group_id}/profiles", profileController.AllByGroup()).Methods("GET")
 	router.HandleFunc("/broadcast/sms", broadcastController.BroadcastGroup()).Methods("POST")
 	router.HandleFunc("/group/profile/add", profileController.AddToGroup()).Methods("POST")
 	http.Handle("/", router)

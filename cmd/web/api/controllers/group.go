@@ -1,9 +1,9 @@
 package controllers
 
 import (
-	viewModels "customer_engagement/cmd/web/api/view_models"
-	dbconfig "customer_engagement/data_store/config"
-	db_models "customer_engagement/data_store/models"
+	vmodels "customer_engagement/cmd/web/api/view_models"
+	dbc "customer_engagement/data_store/config"
+	dbm "customer_engagement/data_store/models"
 	repository "customer_engagement/data_store/repository"
 	"strconv"
 	"time"
@@ -18,15 +18,15 @@ type GroupController struct{}
 
 func (GroupController) All() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
+		gRepo := repository.NewRepository[dbm.Group](dbc.DB)
 		dbGroups, err := gRepo.GetAll()
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
 
-		var vmGroup viewModels.Group
-		vmGroups := make([]viewModels.Group, 0)
+		var vmGroup vmodels.Group
+		vmGroups := make([]vmodels.Group, 0)
 		for _, v := range *dbGroups {
 			vmGroups = append(vmGroups, vmGroup.FromDatabaseEntity(v))
 		}
@@ -44,7 +44,7 @@ func (GroupController) All() func(http.ResponseWriter, *http.Request) {
 
 func (GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var group viewModels.Group
+		var group vmodels.Group
 		err := json.NewDecoder(r.Body).Decode(&group)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -59,7 +59,7 @@ func (GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 		}
 
 		dbGroup := group.ToDatabaseEntity()
-		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
+		gRepo := repository.NewRepository[dbm.Group](dbc.DB)
 		err = gRepo.Add(&dbGroup)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -85,7 +85,7 @@ func (GroupController) Deactivate() func(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		gRepo := repository.NewRepository[db_models.Group](dbconfig.DB)
+		gRepo := repository.NewRepository[dbm.Group](dbc.DB)
 		dbGroup, err := gRepo.GetById(groupID)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
@@ -104,7 +104,7 @@ func (GroupController) Deactivate() func(w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		var vmGroup viewModels.Group
+		var vmGroup vmodels.Group
 		g := vmGroup.FromDatabaseEntity(*dbGroup)
 		jsonResponse, err := json.Marshal(g)
 		if err != nil {
