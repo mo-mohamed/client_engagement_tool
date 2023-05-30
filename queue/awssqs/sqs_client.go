@@ -21,6 +21,7 @@ func NewSqs(session *session.Session) queue.IQueueClient {
 	}
 }
 
+// Sends a message request to the queue.
 func (s sqsClient) Send(req *queue.SendRequest) (string, error) {
 	attrs := make(map[string]*sqs.MessageAttributeValue, len(req.Attributes))
 	for _, attr := range req.Attributes {
@@ -43,6 +44,7 @@ func (s sqsClient) Send(req *queue.SendRequest) (string, error) {
 	return *res.MessageId, nil
 }
 
+// Fetches a message from the requested queue.
 func (s sqsClient) Receieve(queueUrl string) (*queue.Message, error) {
 	res, err := s.client.ReceiveMessage(&sqs.ReceiveMessageInput{
 		QueueUrl:              aws.String(queueUrl),
@@ -68,6 +70,7 @@ func (s sqsClient) Receieve(queueUrl string) (*queue.Message, error) {
 	}, nil
 }
 
+// Deletes a message from the queue.
 func (s sqsClient) Delete(queueUrl string, rcId string) error {
 	deleteRequest := sqs.DeleteMessageInput{
 		QueueUrl:      &queueUrl,

@@ -2,9 +2,7 @@ package consumers
 
 import (
 	group "customer_engagement/consumers/message"
-	"customer_engagement/queue"
 	sqsClient "customer_engagement/queue/awssqs"
-	"fmt"
 	"os"
 
 	int "customer_engagement/consumers/interfaces"
@@ -14,13 +12,6 @@ import (
 
 	gbc "customer_engagement/message_processors/group_broadcast"
 )
-
-type PRO struct{}
-
-func (p PRO) Process(*queue.Message) error {
-	fmt.Println("ooook")
-	return nil
-}
 
 func NewGroupQueueConsumer() int.IConsumer {
 	cfg := aws.Config{
