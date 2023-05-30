@@ -1,49 +1,62 @@
 package client
 
 import (
+	mock_sqsiface "customer_engagement/mocks/aws_sqs"
 	"customer_engagement/queue"
+	"errors"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/sqs"
-	"github.com/aws/aws-sdk-go/service/sqs/sqsiface"
+	"github.com/golang/mock/gomock"
 	"gopkg.in/go-playground/assert.v1"
 )
 
-type mockSQSClient struct {
-	sqsiface.SQSAPI
-}
+func TestSuccessEnqueueOfAMessage(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	client := mock_sqsiface.NewMockSQSAPI(ctrl)
+	defer ctrl.Finish()
 
-func (m *mockSQSClient) SendMessage(in *sqs.SendMessageInput) (*sqs.SendMessageOutput, error) {
-	messageId := "id_queue_123"
-	return &sqs.SendMessageOutput{MessageId: &messageId}, nil
-}
-func (m *mockSQSClient) ReceiveMessage(in *sqs.ReceiveMessageInput) (*sqs.ReceiveMessageOutput, error) {
-	return &sqs.ReceiveMessageOutput{}, nil
-}
+	sqsClient := NewSqs(client)
 
-func ReturnsMessageIdAfterSendingAMessage(t *testing.T) {
-	sqsClient := NewSqs(&mockSQSClient{})
-	attributes := make([]queue.Attribute, 0)
-	attributes = append(attributes, queue.Attribute{
-		Key:   "GroupId",
-		Value: "123",
-		Type:  "String",
-	})
 	send_request := queue.SendRequest{
-		QueueUrl:   "path-for-queue",
-		Body:       "message-body",
-		Attributes: attributes,
+		QueueUrl: "path-for-queue",
+		Body:     "message-body",
 	}
+	messageId := "id_queue_123"
+
+	request := &sqs.SendMessageInput{
+		QueueUrl:          aws.String("path-for-queue"),
+		MessageBody:       aws.String("message-body"),
+		MessageAttributes: make(map[string]*sqs.MessageAttributeValue, 0),
+	}
+
+	client.EXPECT().SendMessage(request).Return(&sqs.SendMessageOutput{MessageId: &messageId}, nil)
 	result, err := sqsClient.Send(&send_request)
 	assert.Equal(t, result, "id_queue_123")
 	assert.Equal(t, err, nil)
-	// queueURL := "https://queue.amazonaws.com/80398EXAMPLE/MyQueue"
-	// q.SendMessage(&sqs.SendMessageInput{
-	// 	MessageBody: aws.String("Hello, World!"),
-	// 	QueueUrl:    &queueURL,
-	// })
-	// message, _ := q.ReceiveMessage(&sqs.ReceiveMessageInput{
-	// 	QueueUrl: &queueURL,
-	// })
-	// assert.Equal(t, *message.Messages[0].Body, "Hello, World!")
+}
+
+func TestCapturesError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	mockClient := mock_sqsiface.NewMockSQSAPI(ctrl)
+	defer ctrl.Finish()
+
+	sqsClient := NewSqs(mockClient)
+
+	send_request := queue.SendRequest{
+		QueueUrl: "path-for-queue",
+		Body:     "message-body",
+	}
+
+	request := &sqs.SendMessageInput{
+		QueueUrl:          aws.String("path-for-queue"),
+		MessageBody:       aws.String("message-body"),
+		MessageAttributes: make(map[string]*sqs.MessageAttributeValue, 0),
+	}
+
+	mockClient.EXPECT().SendMessage(request).Return(nil, errors.New("failed to communicate with sqs service"))
+	result, err := sqsClient.Send(&send_request)
+	assert.Equal(t, result, "")
+	assert.Equal(t, err.Error(), "error sending message to the Queue: failed to communicate with sqs service")
 }
