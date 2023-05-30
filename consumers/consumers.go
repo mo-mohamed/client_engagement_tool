@@ -1,9 +1,10 @@
 package consumers
 
 import (
-	gconsumer "customer_engagement/consumers/message"
+	messageConsumer "customer_engagement/consumers/message"
 	sqsclient "customer_engagement/queue/awssqs"
 	"os"
+	"strconv"
 
 	interfaces "customer_engagement/consumers/interfaces"
 
@@ -20,13 +21,15 @@ func NewGroupQueueConsumer() interfaces.IConsumer {
 	}
 
 	sess := session.Must(session.NewSession(&cfg))
-	s := sqsclient.NewSqs(sess)
-	queueConfig := gconsumer.QueueConfig{
+	client := sqsclient.NewSqs(sess)
+	queueConfig := messageConsumer.QueueConfig{
 		Url:    os.Getenv("AWS_SQS_ENDPOINT") + "/" + os.Getenv("AWS_SQS_SMS_GROUP_NAME"),
-		Client: &s,
+		Client: &client,
 	}
 
-	pro := gbc.GroupMessageProcessor{}
+	profilesBatchSize, _ := strconv.Atoi(os.Getenv("PROFILES_BATCH_SIZE"))
+	processor := gbc.NewGroupMessageProcessor(profilesBatchSize)
 
-	return gconsumer.NewMessageConsumer(2, queueConfig, &pro)
+	numOfGroupWorkers, _ := strconv.Atoi(os.Getenv("NUM_GROUP_MESSAGE_QUEUE_CONSUMER"))
+	return messageConsumer.NewMessageConsumer(numOfGroupWorkers, queueConfig, processor)
 }

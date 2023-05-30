@@ -12,9 +12,9 @@ type GroupProducer struct {
 Returns a new instance of the group processor.
 Accepts an IQueueClient as a paramater
 */
-func NewGroupProducer(c queue.IQueueClient) *GroupProducer {
+func NewGroupProducer(queueClient queue.IQueueClient) *GroupProducer {
 	return &GroupProducer{
-		client: c,
+		client: queueClient,
 	}
 }
 
