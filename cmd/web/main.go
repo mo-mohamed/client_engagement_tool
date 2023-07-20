@@ -4,6 +4,9 @@ import (
 	"customer_engagement/cmd/web/api/controllers"
 	"customer_engagement/consumers"
 	dbconfig "customer_engagement/data_store/config"
+	service "customer_engagement/service"
+	storeLayer "customer_engagement/store"
+	storeRepository "customer_engagement/store/repository"
 	"fmt"
 	"net/http"
 	"os"
@@ -16,12 +19,21 @@ import (
 func main() {
 	setupDB()
 	startConsumers()
-	var groupController controllers.GroupController
-	var profileController controllers.ProfileController
-	var broadcastController controllers.BroadcastController
+
+	storeLayer := &storeLayer.Store{
+		Profile: storeRepository.NewProfileRepo(dbconfig.DB),
+		Group:   storeRepository.NewGroupRepo(dbconfig.DB),
+	}
+	profileService := service.NewProfileService(storeLayer)
+	groupService := service.NewGroupService(storeLayer)
+
+	profileController := controllers.NewProfileController(profileService)
+	groupController := controllers.NewGroupController(groupService)
+	broadcastController := controllers.NewBroadCastController(groupService)
+	// var groupController controllers.GroupController
 
 	router := mux.NewRouter()
-	router.HandleFunc("/groups", groupController.All()).Methods("GET")
+	// router.HandleFunc("/groups", groupController.All()).Methods("GET")
 	router.HandleFunc("/group/create", groupController.Create()).Methods("POST")
 	router.HandleFunc("/group/deactivate/{id}", groupController.Deactivate()).Methods("POST")
 	router.HandleFunc("/profile/create", profileController.Create()).Methods("POST")

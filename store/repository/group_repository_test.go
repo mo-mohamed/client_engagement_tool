@@ -1,6 +1,8 @@
-package dbRepository
+package repository
 
 import (
+	"customer_engagement/store/interfaces"
+	"customer_engagement/store/models"
 	testH "customer_engagement/test_helper"
 	"testing"
 
@@ -8,14 +10,14 @@ import (
 )
 
 var (
-	groupRepo IGroupRepository = NewGroupRepo(testH.DB)
+	gRepo interfaces.IGroupRepository = NewGroupRepo(testH.DB)
 )
 
 func TestGroupRepository(t *testing.T) {
 	testH.TruncateTables([]string{"`group`"})
 	t.Run("successfully inserts a group", func(t *testing.T) {
 		groupName := "Group 1"
-		dbGroup, err := groupRepo.CreateGroup(testH.Ctx, newGroup(groupName))
+		dbGroup, err := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
 		assert.Equal(t, err, nil)
 		assert.Equal(t, dbGroup.Name, groupName)
 		assert.NotEqual(t, dbGroup.CreatedAt, nil)
@@ -29,8 +31,8 @@ func TestGroupRepository(t *testing.T) {
 	t.Run("successfully retrieves a group by id", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
-		dbGroup, _ := groupRepo.CreateGroup(testH.Ctx, newGroup(groupName))
-		retrievedGroup, err := groupRepo.GetGroup(testH.Ctx, dbGroup.ID)
+		dbGroup, _ := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
+		retrievedGroup, err := gRepo.GetGroup(testH.Ctx, dbGroup.ID)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, retrievedGroup.ID, dbGroup.ID)
 		assert.Equal(t, *retrievedGroup.Name, *dbGroup.Name)
@@ -39,14 +41,14 @@ func TestGroupRepository(t *testing.T) {
 	t.Run("successfully updates a group", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
-		dbGroup, _ := groupRepo.CreateGroup(testH.Ctx, newGroup(groupName))
+		dbGroup, _ := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
 		assert.Equal(t, *dbGroup.Name, groupName)
 		newGroupName := "Group2"
 		dbGroup.Name = &newGroupName
-		dbGroup, err := groupRepo.UpdateGroup(testH.Ctx, dbGroup)
+		dbGroup, err := gRepo.UpdateGroup(testH.Ctx, dbGroup)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, *dbGroup.Name, newGroupName)
 	})
 }
 
-func newGroup(name string) *GroupStore { return &GroupStore{Name: &name} }
+func newGroup(name string) *models.GroupStore { return &models.GroupStore{Name: &name} }

@@ -6,7 +6,7 @@ package viewModels
 import (
 	"time"
 
-	db_models "customer_engagement/data_store/models"
+	dbModels "customer_engagement/store/models"
 
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -20,13 +20,13 @@ type Group struct {
 	Active    bool       `json:"active"`
 }
 
-func (g Group) ToDatabaseEntity() db_models.Group {
-	return db_models.Group{
+func (g Group) ToDatabaseEntity() dbModels.GroupStore {
+	return dbModels.GroupStore{
 		Name: g.Name,
 	}
 }
 
-func (g Group) FromDatabaseEntity(dbGroup db_models.Group) Group {
+func (g Group) FromDatabaseEntity(dbGroup dbModels.GroupStore) Group {
 	return_group := Group{
 		Name:      dbGroup.Name,
 		CreatedAt: dbGroup.CreatedAt,

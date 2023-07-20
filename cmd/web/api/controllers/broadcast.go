@@ -2,12 +2,10 @@ package controllers
 
 import (
 	vmodels "customer_engagement/cmd/web/api/view_models"
-	dbc "customer_engagement/data_store/config"
-	dbm "customer_engagement/data_store/models"
-	repository "customer_engagement/data_store/repository"
 	groupProducer "customer_engagement/producers/message"
 	queue "customer_engagement/queue"
 	sqsClient "customer_engagement/queue/awssqs"
+	service "customer_engagement/service"
 	"fmt"
 	"os"
 	"strconv"
@@ -23,9 +21,17 @@ import (
 	"github.com/google/uuid"
 )
 
-type BroadcastController struct{}
+type BroadcastController struct {
+	service service.IGroupService
+}
 
-func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
+func NewBroadCastController(gs service.IGroupService) *BroadcastController {
+	return &BroadcastController{
+		service: gs,
+	}
+}
+
+func (c BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var bcr vmodels.BroadcastRequest
@@ -37,23 +43,19 @@ func (BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Requ
 			return
 		}
 
-		groupId := bcr.GroupId
-		gRepo := repository.NewRepository[dbm.Group](dbc.DB)
-
-		dbGroup, exists := gRepo.Exists(groupId)
+		exists, _ := c.service.Exists(r.Context(), bcr.GroupId)
 		if !exists {
 			http.Error(w, "Group not found", http.StatusNotFound)
 			return
 		}
 
-		_, err := produceGroup(dbGroup.ID, bcr.MessageBody)
+		_, err := produceGroup(bcr.GroupId, bcr.MessageBody)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		} else {
 			fmt.Println("SUCCEDDED")
 		}
-
 	}
 }
 
