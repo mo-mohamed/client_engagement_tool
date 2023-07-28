@@ -4,7 +4,6 @@ import (
 	"context"
 	"customer_engagement/store/interfaces"
 	"customer_engagement/store/models"
-	"database/sql"
 
 	"gorm.io/gorm"
 )
@@ -38,10 +37,9 @@ func (repo *groupRepository) UpdateGroup(ctx context.Context, group *models.Grou
 }
 
 func (repo *groupRepository) Exists(ctx context.Context, groupID int) (bool, error) {
-	var exists bool
-	query := `SELECT EXISTS (SELECT 1 FROM group where id = ?`
-	err := repo.db.WithContext(ctx).Exec(query, groupID).Scan(&exists).Error
-	if err != sql.ErrNoRows {
+	var exists bool = false
+	err := repo.db.Model(&models.GroupStore{}).Select("COUNT(*) > 0").Where("id = ?", groupID).Find(&exists).Error
+	if err != nil {
 		return false, err
 	}
 	return exists, nil

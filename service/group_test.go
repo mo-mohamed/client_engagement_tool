@@ -56,7 +56,7 @@ func TestGroupService(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		exists, err := groupService.Exists(testH.Ctx, 2)
 		assert.Equal(t, err, nil)
-		assert.Equal(t, exists, true)
+		assert.Equal(t, exists, false)
 	})
 }
 
