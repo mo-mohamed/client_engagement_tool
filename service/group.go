@@ -17,7 +17,7 @@ func NewGroupService(store *storeLayer.Store) interfaces.IGroupService {
 }
 
 // Get Group by id.
-func (gs *GroupService) GetGroup(ctx context.Context, id int) (*domains.Group, error) {
+func (gs *GroupService) Get(ctx context.Context, id int) (*domains.Group, error) {
 	g, err := gs.store.Group.GetGroup(ctx, id)
 	if err != nil {
 		return nil, err
@@ -26,7 +26,7 @@ func (gs *GroupService) GetGroup(ctx context.Context, id int) (*domains.Group, e
 }
 
 // Create a Group
-func (gs *GroupService) CreateGroup(ctx context.Context, group *domains.Group) (*domains.Group, error) {
+func (gs *GroupService) Create(ctx context.Context, group *domains.Group) (*domains.Group, error) {
 	g, err := gs.store.Group.CreateGroup(ctx, gs.toDatabaseEntity(group))
 	if err != nil {
 		return nil, err
@@ -36,7 +36,7 @@ func (gs *GroupService) CreateGroup(ctx context.Context, group *domains.Group) (
 }
 
 // Updates a Group
-func (gs *GroupService) UpdateGroup(ctx context.Context, group *domains.Group) (*domains.Group, error) {
+func (gs *GroupService) Update(ctx context.Context, group *domains.Group) (*domains.Group, error) {
 	g, err := gs.store.Group.UpdateGroup(ctx, gs.toDatabaseEntity(group))
 	if err != nil {
 		return nil, err

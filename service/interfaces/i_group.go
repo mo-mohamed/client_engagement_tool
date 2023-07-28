@@ -6,8 +6,8 @@ import (
 )
 
 type IGroupService interface {
-	GetGroup(ctx context.Context, id int) (*domains.Group, error)
-	CreateGroup(ctx context.Context, group *domains.Group) (*domains.Group, error)
-	UpdateGroup(ctx context.Context, group *domains.Group) (*domains.Group, error)
+	Get(ctx context.Context, id int) (*domains.Group, error)
+	Create(ctx context.Context, group *domains.Group) (*domains.Group, error)
+	Update(ctx context.Context, group *domains.Group) (*domains.Group, error)
 	Exists(ctx context.Context, groupID int) (bool, error)
 }
