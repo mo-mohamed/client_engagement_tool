@@ -1,23 +1,25 @@
 package repository
 
 import (
-	"customer_engagement/store/interfaces"
+	"customer_engagement/store"
 	"customer_engagement/store/models"
 	testH "customer_engagement/test_helper"
 	"testing"
+	"time"
 
 	"gopkg.in/go-playground/assert.v1"
 )
 
-var (
-	gRepo interfaces.IGroupRepository = NewGroupRepo(testH.DB)
-)
-
 func TestGroupRepository(t *testing.T) {
+	store := &store.Store{
+		Profile: NewProfileRepo(testH.DB),
+		Group:   NewGroupRepo(testH.DB),
+	}
+
 	t.Run("successfully inserts a group", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
-		dbGroup, err := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
+		dbGroup, err := store.Group.CreateGroup(testH.Ctx, newGroup(groupName))
 		assert.Equal(t, err, nil)
 		assert.Equal(t, dbGroup.Name, groupName)
 		assert.NotEqual(t, dbGroup.CreatedAt, nil)
@@ -31,8 +33,8 @@ func TestGroupRepository(t *testing.T) {
 	t.Run("successfully retrieves a group by id", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
-		dbGroup, _ := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
-		retrievedGroup, err := gRepo.GetGroup(testH.Ctx, dbGroup.ID)
+		dbGroup, _ := store.Group.CreateGroup(testH.Ctx, newGroup(groupName))
+		retrievedGroup, err := store.Group.GetGroup(testH.Ctx, dbGroup.ID)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, retrievedGroup.ID, dbGroup.ID)
 		assert.Equal(t, *retrievedGroup.Name, *dbGroup.Name)
@@ -41,13 +43,29 @@ func TestGroupRepository(t *testing.T) {
 	t.Run("successfully updates a group", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
-		dbGroup, _ := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
+		dbGroup, _ := store.Group.CreateGroup(testH.Ctx, newGroup(groupName))
 		assert.Equal(t, *dbGroup.Name, groupName)
 		newGroupName := "Group2"
 		dbGroup.Name = &newGroupName
-		dbGroup, err := gRepo.UpdateGroup(testH.Ctx, dbGroup)
+		dbGroup, err := store.Group.UpdateGroup(testH.Ctx, dbGroup)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, *dbGroup.Name, newGroupName)
+	})
+
+	t.Run("Get number of profiles per group that were added before a specific time", func(t *testing.T) {
+		testH.TruncateTables([]string{"`group`", "profile", "group_profile"})
+		p1, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first", "last", "123"))
+		p2, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first2", "last2", "12345"))
+		g, _ := store.Group.CreateGroup(testH.Ctx, newGroup("group-name"))
+
+		e := store.Profile.AddProfileToGroup(testH.Ctx, p1.ID, g.ID)
+		assert.Equal(t, e, nil)
+		e = store.Profile.AddProfileToGroup(testH.Ctx, p2.ID, g.ID)
+		assert.Equal(t, e, nil)
+
+		result := store.Group.CountNumberOfProfilesToProcess(testH.Ctx, g.ID, time.Now())
+		assert.Equal(t, result, 2)
+
 	})
 }
 

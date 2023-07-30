@@ -4,22 +4,24 @@ import (
 	"testing"
 	"time"
 
-	"customer_engagement/store/interfaces"
+	"customer_engagement/store"
 	"customer_engagement/store/models"
 	testH "customer_engagement/test_helper"
 
 	"gopkg.in/go-playground/assert.v1"
 )
 
-var (
-	repo interfaces.IProfileRepo = NewProfileRepo(testH.DB)
-)
-
 func TestProfileDBRepository(t *testing.T) {
+
+	store := &store.Store{
+		Profile: NewProfileRepo(testH.DB),
+		Group:   NewGroupRepo(testH.DB),
+	}
+
 	t.Run("successfully create a profile", func(t *testing.T) {
 		testH.TruncateTables([]string{"profile"})
 		profile := newProfile("first", "last", "123")
-		dbProfile, err := repo.CreateProfile(testH.Ctx, profile)
+		dbProfile, err := store.Profile.CreateProfile(testH.Ctx, profile)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, *profile.FirstName, *dbProfile.FirstName)
 		assert.Equal(t, *profile.LastName, *dbProfile.LastName)
@@ -35,7 +37,7 @@ func TestProfileDBRepository(t *testing.T) {
 	t.Run("successfully updates a profile", func(t *testing.T) {
 		testH.TruncateTables([]string{"profile"})
 		profile := newProfile("first", "last", "123")
-		dbProfile, err := repo.CreateProfile(testH.Ctx, profile)
+		dbProfile, err := store.Profile.CreateProfile(testH.Ctx, profile)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, *profile.FirstName, *dbProfile.FirstName)
 		assert.Equal(t, *profile.LastName, *dbProfile.LastName)
@@ -50,7 +52,7 @@ func TestProfileDBRepository(t *testing.T) {
 		dbProfile.FirstName = &firstNameChange
 		dbProfile.LastName = &lastNameChange
 		dbProfile.MDN = mdnChange
-		dbProfile, err = repo.UpdateProfile(testH.Ctx, dbProfile)
+		dbProfile, err = store.Profile.UpdateProfile(testH.Ctx, dbProfile)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, *dbProfile.FirstName, firstNameChange)
 		assert.Equal(t, *dbProfile.LastName, lastNameChange)
@@ -61,8 +63,8 @@ func TestProfileDBRepository(t *testing.T) {
 	t.Run("successfully finds a profile by id", func(t *testing.T) {
 		testH.TruncateTables([]string{"profile"})
 		profile := newProfile("first", "last", "123")
-		repo.CreateProfile(testH.Ctx, profile)
-		dbProfile, err := repo.GetProfile(testH.Ctx, profile.ID)
+		store.Profile.CreateProfile(testH.Ctx, profile)
+		dbProfile, err := store.Profile.GetProfile(testH.Ctx, profile.ID)
 		assert.Equal(t, err, nil)
 		assert.NotEqual(t, dbProfile.ID, nil)
 
@@ -70,19 +72,19 @@ func TestProfileDBRepository(t *testing.T) {
 
 	t.Run("returns an error if a profile not found", func(t *testing.T) {
 		testH.TruncateTables([]string{"profile"})
-		_, err := repo.GetProfile(testH.Ctx, 2)
+		_, err := store.Profile.GetProfile(testH.Ctx, 2)
 		assert.Equal(t, err.Error(), "record not found")
 	})
 
 	t.Run("get profiles paginated and ordered by created at field DESC", func(t *testing.T) {
 		testH.TruncateTables([]string{"profile"})
-		repo.CreateProfile(testH.Ctx, newProfile("first1", "last1", "123542"))
-		repo.CreateProfile(testH.Ctx, newProfile("first2", "last2", "122343"))
+		store.Profile.CreateProfile(testH.Ctx, newProfile("first1", "last1", "123542"))
+		store.Profile.CreateProfile(testH.Ctx, newProfile("first2", "last2", "122343"))
 		now := time.Now()
 		time.Sleep(time.Second)
-		repo.CreateProfile(testH.Ctx, newProfile("first3", "last3", "1543523"))
-		repo.CreateProfile(testH.Ctx, newProfile("first4", "last4", "1333e23"))
-		profilesList, err := repo.GetProfilesPaginated(testH.Ctx, 2, 2)
+		store.Profile.CreateProfile(testH.Ctx, newProfile("first3", "last3", "1543523"))
+		store.Profile.CreateProfile(testH.Ctx, newProfile("first4", "last4", "1333e23"))
+		profilesList, err := store.Profile.GetProfilesPaginated(testH.Ctx, 2, 2)
 		assert.Equal(t, err, nil)
 		assert.Equal(t, len(profilesList), 2)
 		for _, p := range profilesList {
@@ -90,6 +92,29 @@ func TestProfileDBRepository(t *testing.T) {
 				t.Error("Created at should be larger than ", now)
 			}
 		}
+	})
+
+	t.Run("get profiles paginated per group and ordered by created at field DESC", func(t *testing.T) {
+		testH.TruncateTables([]string{"profile", "group_profile", "group"})
+		g, _ := store.Group.CreateGroup(testH.Ctx, newGroup("group"))
+
+		p1, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first1", "last1", "123542"))
+		store.Profile.AddProfileToGroup(testH.Ctx, p1.ID, g.ID)
+
+		p2, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first2", "last2", "122343"))
+		store.Profile.AddProfileToGroup(testH.Ctx, p2.ID, g.ID)
+
+		g2, _ := store.Group.CreateGroup(testH.Ctx, newGroup("group 2"))
+
+		p3, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first3", "last3", "1543523"))
+		store.Profile.AddProfileToGroup(testH.Ctx, p3.ID, g2.ID)
+
+		p4, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first4", "last4", "1333e23"))
+		store.Profile.AddProfileToGroup(testH.Ctx, p4.ID, g2.ID)
+
+		profilesList, err := store.Profile.GetGroupProfilesPaginated(testH.Ctx, g.ID, 0, 10, time.Now())
+		assert.Equal(t, err, nil)
+		assert.Equal(t, len(profilesList), 2)
 	})
 }
 

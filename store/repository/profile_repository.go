@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"time"
 
 	"customer_engagement/store/interfaces"
 	"customer_engagement/store/models"
@@ -45,23 +46,20 @@ func (repo *profileRepo) GetProfilesPaginated(ctx context.Context, limit int, of
 	return result, err
 }
 
-// Gets profiles paginated for a Group.
-func (repo *profileRepo) GetGroupProfilesPaginated(ctx context.Context, groupId, limit, offset int) ([]models.ProfileStore, error) {
-	var result []models.ProfileStore
-	query := `
-		SELECT * FROM profile p
-		INNER JOIN group_profile gp
-		ON p.id = gp.profile_id
-		WHERE gp.group_id = ?
-		ORDER BY p.created_at ASC
-		LIMIT ?
-		OFFSET ?
-		`
-	err := repo.db.WithContext(ctx).Raw(query, groupId, limit, offset).Scan(result).Error
-	return result, err
-}
-
 func (repo *profileRepo) AddProfileToGroup(ctx context.Context, profileId, groupId int) error {
 	query := `INSERT INTO group_profile (profile_id, group_id) VALUES (?, ?)`
 	return repo.db.WithContext(ctx).Exec(query, profileId, groupId).Error
+}
+
+func (repo *profileRepo) GetGroupProfilesPaginated(ctx context.Context, grId, limit, offset int, enqueueDate time.Time) ([]models.ProfileStore, error) {
+	var result []models.ProfileStore
+	query := `
+	SELECT p.* FROM profile p INNER JOIN group_profile gp ON p.id = gp.profile_id
+	WHERE gp.group_id = ?
+	AND gp.created_at <= ?
+	ORDER BY p.created_at ASC
+	LIMIT ?, ?
+	`
+	err := repo.db.WithContext(ctx).Raw(query, grId, enqueueDate, limit, offset).Scan(&result).Error
+	return result, err
 }

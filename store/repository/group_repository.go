@@ -4,6 +4,7 @@ import (
 	"context"
 	"customer_engagement/store/interfaces"
 	"customer_engagement/store/models"
+	"time"
 
 	"gorm.io/gorm"
 )
@@ -36,6 +37,7 @@ func (repo *groupRepository) UpdateGroup(ctx context.Context, group *models.Grou
 	return group, err
 }
 
+// Checks existence of a group by id
 func (repo *groupRepository) Exists(ctx context.Context, groupID int) (bool, error) {
 	var exists bool = false
 	err := repo.db.Model(&models.GroupStore{}).Select("COUNT(*) > 0").Where("id = ?", groupID).Find(&exists).Error
@@ -43,4 +45,16 @@ func (repo *groupRepository) Exists(ctx context.Context, groupID int) (bool, err
 		return false, err
 	}
 	return exists, nil
+}
+
+// Counts how many profiles to process per group that recorded before a specific insertion date
+func (repo *groupRepository) CountNumberOfProfilesToProcess(ctx context.Context, grId int, dateEnqueued time.Time) int {
+	query := `
+		SELECT COUNT(*) FROM group_profile gp
+		INNER JOIN profile p on gp.profile_id = p.id
+		WHERE gp.group_id = ? AND gp.created_at <= ?;
+	`
+	var count int
+	repo.db.Raw(query, grId, dateEnqueued).Scan(&count)
+	return count
 }
