@@ -14,8 +14,8 @@ var (
 )
 
 func TestGroupRepository(t *testing.T) {
-	testH.TruncateTables([]string{"`group`"})
 	t.Run("successfully inserts a group", func(t *testing.T) {
+		testH.TruncateTables([]string{"`group`"})
 		groupName := "Group 1"
 		dbGroup, err := gRepo.CreateGroup(testH.Ctx, newGroup(groupName))
 		assert.Equal(t, err, nil)

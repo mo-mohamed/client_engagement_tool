@@ -27,17 +27,17 @@ func (ps *ProfileService) Create(ctx context.Context, profile *domains.Profile) 
 func (ps *ProfileService) Get(ctx context.Context, id int) (*domains.Profile, error) {
 	p, err := ps.store.Profile.GetProfile(ctx, id)
 	if err != nil {
-		return ps.toDomain(p), nil
+		return nil, err
 	}
-	return nil, err
+	return ps.toDomain(p), nil
 }
 
 func (ps *ProfileService) Update(ctx context.Context, profile *domains.Profile) (*domains.Profile, error) {
 	p, err := ps.store.Profile.UpdateProfile(ctx, ps.toDatabaseEntity(profile))
 	if err != nil {
-		return ps.toDomain(p), err
+		return nil, err
 	}
-	return nil, err
+	return ps.toDomain(p), err
 }
 
 func (ps *ProfileService) GetPaginated(ctx context.Context, limit int, offset int) ([]*domains.Profile, error) {
