@@ -9,12 +9,12 @@ import (
 )
 
 type ProfileController struct {
-	profileService service.IProfileService
+	service *service.Service
 }
 
-func NewProfileController(ps service.IProfileService) *ProfileController {
+func NewProfileController(ps *service.Service) *ProfileController {
 	return &ProfileController{
-		profileService: ps,
+		service: ps,
 	}
 }
 
@@ -27,11 +27,7 @@ func (c ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		err = c.profileService.AttachToGroup(r.Context(), groupProfileVm.ProfileId, groupProfileVm.GroupId)
-		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-		}
-
+		err = c.service.Profile.AttachToGroup(r.Context(), groupProfileVm.ProfileId, groupProfileVm.GroupId)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
 		}
@@ -41,9 +37,7 @@ func (c ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Requ
 }
 
 func (pc ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-
 		var profileVM vmodels.Profile
 		err := json.NewDecoder(r.Body).Decode(&profileVM)
 		if err != nil {
@@ -58,14 +52,13 @@ func (pc ProfileController) Create() func(w http.ResponseWriter, r *http.Request
 			return
 		}
 
-		databaseProfile := profileVM.ToDatabaseEntity()
-
-		db_profile, err := pc.profileService.Create(r.Context(), &databaseProfile)
+		domianProfile := profileVM.ToDomain()
+		profile, err := pc.service.Profile.Create(r.Context(), &domianProfile)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		profileVM = profileVM.FromDatabaseEntity(*db_profile)
+		profileVM = profileVM.FromService(*profile)
 		jsonResponse, err := json.Marshal(profileVM)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)

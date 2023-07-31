@@ -5,7 +5,7 @@ Holds profiles related to/from database objects convertions and API's input vali
 package viewModels
 
 import (
-	dbModels "customer_engagement/store/models"
+	serviceModels "customer_engagement/service/models"
 	"time"
 
 	"gopkg.in/go-playground/validator.v9"
@@ -22,26 +22,26 @@ type Profile struct {
 	Active    bool       `json:"active"`
 }
 
-func (p Profile) ToDatabaseEntity() dbModels.ProfileStore {
-	return dbModels.ProfileStore{
+func (p Profile) ToDomain() serviceModels.Profile {
+	return serviceModels.Profile{
 		FirstName: p.FirstName,
 		LastName:  p.LastName,
 		MDN:       *p.MDN,
 	}
 }
 
-func (Profile) FromDatabaseEntity(dbProfile dbModels.ProfileStore) Profile {
+func (Profile) FromService(p serviceModels.Profile) Profile {
 	returnProfile := Profile{
-		FirstName: dbProfile.FirstName,
-		LastName:  dbProfile.LastName,
-		MDN:       &dbProfile.MDN,
-		CreatedAt: dbProfile.CreatedAt,
-		UpdatedAt: dbProfile.UpdatedAt,
-		DeletedAt: dbProfile.DeletedAt,
-		ID:        dbProfile.ID,
+		FirstName: p.FirstName,
+		LastName:  p.LastName,
+		MDN:       &p.MDN,
+		CreatedAt: p.CreatedAt,
+		UpdatedAt: p.UpdatedAt,
+		DeletedAt: p.DeletedAt,
+		ID:        p.ID,
 	}
 
-	if dbProfile.DeletedAt == nil {
+	if p.DeletedAt == nil {
 		returnProfile.Active = true
 	} else {
 		returnProfile.Active = false

@@ -6,7 +6,7 @@ package viewModels
 import (
 	"time"
 
-	dbModels "customer_engagement/store/models"
+	serviceModels "customer_engagement/service/models"
 
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -20,22 +20,22 @@ type Group struct {
 	Active    bool       `json:"active"`
 }
 
-func (g Group) ToDatabaseEntity() dbModels.GroupStore {
-	return dbModels.GroupStore{
+func (g Group) ToDomain() serviceModels.Group {
+	return serviceModels.Group{
 		Name: g.Name,
 	}
 }
 
-func (g Group) FromDatabaseEntity(dbGroup dbModels.GroupStore) Group {
+func (g Group) FromService(group serviceModels.Group) Group {
 	return_group := Group{
-		Name:      dbGroup.Name,
-		CreatedAt: dbGroup.CreatedAt,
-		UpdatedAt: dbGroup.UpdatedAt,
-		DeletedAt: dbGroup.DeletedAt,
-		ID:        dbGroup.ID,
+		Name:      group.Name,
+		CreatedAt: group.CreatedAt,
+		UpdatedAt: group.UpdatedAt,
+		DeletedAt: group.DeletedAt,
+		ID:        group.ID,
 	}
 
-	if dbGroup.DeletedAt == nil {
+	if group.DeletedAt == nil {
 		return_group.Active = true
 	} else {
 		return_group.Active = false

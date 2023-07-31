@@ -22,12 +22,12 @@ import (
 )
 
 type BroadcastController struct {
-	service service.IGroupService
+	service *service.Service
 }
 
-func NewBroadCastController(gs service.IGroupService) *BroadcastController {
+func NewBroadCastController(service *service.Service) *BroadcastController {
 	return &BroadcastController{
-		service: gs,
+		service: service,
 	}
 }
 
@@ -43,7 +43,7 @@ func (c BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		exists, _ := c.service.Exists(r.Context(), bcr.GroupId)
+		exists, _ := c.service.Group.Exists(r.Context(), bcr.GroupId)
 		if !exists {
 			http.Error(w, "Group not found", http.StatusNotFound)
 			return

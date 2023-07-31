@@ -14,12 +14,12 @@ import (
 )
 
 type GroupController struct {
-	service service.IGroupService
+	service *service.Service
 }
 
-func NewGroupController(gs service.IGroupService) *GroupController {
+func NewGroupController(service *service.Service) *GroupController {
 	return &GroupController{
-		service: gs,
+		service: service,
 	}
 }
 
@@ -63,13 +63,13 @@ func (c GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(errors)
 			return
 		}
-		dbEntity := group.ToDatabaseEntity()
-		dbGroup, err := c.service.CreateGroup(r.Context(), &dbEntity)
+		domainGroup := group.ToDomain()
+		dbGroup, err := c.service.Group.Create(r.Context(), &domainGroup)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 		}
 
-		group = group.FromDatabaseEntity(*dbGroup)
+		group = group.FromService(*dbGroup)
 		jsonResponse, err := json.Marshal(group)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
@@ -89,7 +89,7 @@ func (c GroupController) Deactivate() func(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		dbGroup, err := c.service.GetGroup(r.Context(), groupID)
+		dbGroup, err := c.service.Group.Get(r.Context(), groupID)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
 			return
@@ -101,14 +101,14 @@ func (c GroupController) Deactivate() func(w http.ResponseWriter, r *http.Reques
 		}
 		deleted_at := time.Now()
 		dbGroup.DeletedAt = &deleted_at
-		_, err = c.service.UpdateGroup(r.Context(), dbGroup)
+		_, err = c.service.Group.Update(r.Context(), dbGroup)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)
 			return
 		}
 
 		var vmGroup vmodels.Group
-		g := vmGroup.FromDatabaseEntity(*dbGroup)
+		g := vmGroup.FromService(*dbGroup)
 		jsonResponse, err := json.Marshal(g)
 		if err != nil {
 			http.Error(w, "Error occured", http.StatusBadRequest)

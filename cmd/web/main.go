@@ -3,7 +3,6 @@ package main
 import (
 	"customer_engagement/cmd/web/api/controllers"
 	"customer_engagement/consumers"
-	dbconfig "customer_engagement/data_store/config"
 	service "customer_engagement/service"
 	storeLayer "customer_engagement/store"
 	storeRepository "customer_engagement/store/repository"
@@ -16,24 +15,22 @@ import (
 	"gorm.io/gorm"
 )
 
+var (
+	dbConn *gorm.DB
+)
+
 func main() {
 	setupDB()
 	startConsumers()
 
-	storeLayer := &storeLayer.Store{
-		Profile: storeRepository.NewProfileRepo(dbconfig.DB),
-		Group:   storeRepository.NewGroupRepo(dbconfig.DB),
-	}
-	profileService := service.NewProfileService(storeLayer)
-	groupService := service.NewGroupService(storeLayer)
+	storeLayer := initStore()
+	serviceLayer := initService(storeLayer)
 
-	profileController := controllers.NewProfileController(profileService)
-	groupController := controllers.NewGroupController(groupService)
-	broadcastController := controllers.NewBroadCastController(groupService)
-	// var groupController controllers.GroupController
+	profileController := controllers.NewProfileController(serviceLayer)
+	groupController := controllers.NewGroupController(serviceLayer)
+	broadcastController := controllers.NewBroadCastController(serviceLayer)
 
 	router := mux.NewRouter()
-	// router.HandleFunc("/groups", groupController.All()).Methods("GET")
 	router.HandleFunc("/group/create", groupController.Create()).Methods("POST")
 	router.HandleFunc("/group/deactivate/{id}", groupController.Deactivate()).Methods("POST")
 	router.HandleFunc("/profile/create", profileController.Create()).Methods("POST")
@@ -58,10 +55,24 @@ func setupDB() {
 		os.Exit(1)
 	}
 	fmt.Println("Successful connection to database")
-	dbconfig.DB = db_conn
+	dbConn = db_conn
 }
 
 func startConsumers() {
 	fmt.Println("Starting consumers")
 	go consumers.NewGroupQueueConsumer().Run()
+}
+
+func initStore() *storeLayer.Store {
+	return &storeLayer.Store{
+		Profile: storeRepository.NewProfileRepo(dbConn),
+		Group:   storeRepository.NewGroupRepo(dbConn),
+	}
+}
+
+func initService(store *storeLayer.Store) *service.Service {
+	return &service.Service{
+		Profile: service.NewProfileService(store),
+		Group:   service.NewGroupService(store),
+	}
 }
