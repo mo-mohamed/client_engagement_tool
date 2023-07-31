@@ -31,15 +31,12 @@ func main() {
 	broadcastController := controllers.NewBroadCastController(serviceLayer)
 
 	router := mux.NewRouter()
-	router.HandleFunc("/group/create", groupController.Create()).Methods("POST")
-	router.HandleFunc("/group/deactivate/{id}", groupController.Deactivate()).Methods("POST")
-	router.HandleFunc("/profile/create", profileController.Create()).Methods("POST")
-	router.HandleFunc("/broadcast/sms", broadcastController.BroadcastGroup()).Methods("POST")
-	router.HandleFunc("/group/profile/add", profileController.AddToGroup()).Methods("POST")
+	profileController.InitializeRoutes(router)
+	groupController.InitializeRoutes(router)
+	broadcastController.InitializeRoutes(router)
 	http.Handle("/", router)
 
 	http.ListenAndServe(":8080", router)
-
 }
 
 func setupDB() {

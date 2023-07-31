@@ -23,6 +23,11 @@ func NewGroupController(service *service.Service) *GroupController {
 	}
 }
 
+func (c GroupController) InitializeRoutes(r *mux.Router) {
+	r.HandleFunc("/group/create", c.Create()).Methods("POST")
+	r.HandleFunc("/group/deactivate/{id}", c.Deactivate()).Methods("POST")
+}
+
 // func (c GroupController) All() func(http.ResponseWriter, *http.Request) {
 // 	return func(w http.ResponseWriter, r *http.Request) {
 // 		dbGroups, err := c.service.GetAll()

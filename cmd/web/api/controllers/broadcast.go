@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 )
 
 type BroadcastController struct {
@@ -29,6 +30,10 @@ func NewBroadCastController(service *service.Service) *BroadcastController {
 	return &BroadcastController{
 		service: service,
 	}
+}
+
+func (c BroadcastController) InitializeRoutes(r *mux.Router) {
+	r.HandleFunc("/broadcast/sms", c.BroadcastGroup()).Methods("POST")
 }
 
 func (c BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
