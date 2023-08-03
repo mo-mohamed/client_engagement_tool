@@ -3,6 +3,7 @@ package controllers
 import (
 	vmodels "customer_engagement/cmd/web/api/view_models"
 	service "customer_engagement/service"
+	"fmt"
 
 	"encoding/json"
 	"net/http"
@@ -44,10 +45,14 @@ func (c ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Requ
 }
 
 func (pc ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("HELOOOOOOOO")
 	return func(w http.ResponseWriter, r *http.Request) {
 		var profileVM vmodels.Profile
 		err := json.NewDecoder(r.Body).Decode(&profileVM)
+		fmt.Println("error", err)
+		fmt.Printf("%+v\n", profileVM)
 		if err != nil {
+			fmt.Println("ERRORRRRRRR")
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
