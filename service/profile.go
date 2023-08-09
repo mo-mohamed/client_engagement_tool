@@ -60,7 +60,7 @@ func (ps *ProfileService) toDomain(profile *store.ProfileStore) *domains.Profile
 	return &domains.Profile{
 		ID:        profile.ID,
 		FirstName: profile.FirstName,
-		MDN:       *profile.LastName,
+		MDN:       profile.MDN,
 		LastName:  profile.LastName,
 		CreatedAt: profile.CreatedAt,
 		UpdatedAt: profile.UpdatedAt,
