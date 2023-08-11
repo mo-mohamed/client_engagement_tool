@@ -30,7 +30,6 @@ func (gs *GroupService) Create(ctx context.Context, group *domains.Group) (*doma
 	g, err := gs.store.Group.CreateGroup(ctx, gs.toDatabaseEntity(group))
 	if err != nil {
 		return nil, err
-
 	}
 	return gs.toDomain(g), err
 }

@@ -3,6 +3,8 @@ package main
 import (
 	"customer_engagement/cmd/web/api/controllers"
 	"customer_engagement/consumers"
+	queueService "customer_engagement/queue"
+	awsSqsClient "customer_engagement/queue/awssqs"
 	service "customer_engagement/service"
 	storeLayer "customer_engagement/store"
 	storeRepository "customer_engagement/store/repository"
@@ -10,6 +12,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/gorilla/mux"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -24,7 +29,9 @@ func main() {
 	startConsumers()
 
 	storeLayer := initStore()
-	serviceLayer := initService(storeLayer)
+	queueClient := initQueueService()
+	serviceLayer := initService(storeLayer, queueClient)
+	// serviceLayer.Queue = queueClient
 
 	profileController := controllers.NewProfileController(serviceLayer)
 	groupController := controllers.NewGroupController(serviceLayer)
@@ -67,9 +74,19 @@ func initStore() *storeLayer.Store {
 	}
 }
 
-func initService(store *storeLayer.Store) *service.Service {
+func initService(store *storeLayer.Store, queueClient queueService.IQueueClient) *service.Service {
 	return &service.Service{
-		Profile: service.NewProfileService(store),
-		Group:   service.NewGroupService(store),
+		Profile:   service.NewProfileService(store),
+		Group:     service.NewGroupService(store),
+		Broadcast: service.NewBroadcastService(queueClient),
 	}
+}
+
+func initQueueService() queueService.IQueueClient {
+	sqsSession := session.Must(session.NewSession(&aws.Config{
+		Region:   aws.String(os.Getenv("AWS_SQS_REGION")),
+		Endpoint: aws.String(os.Getenv("AWS_SQS_ENDPOINT")),
+	}))
+
+	return awsSqsClient.NewSqs(sqs.New(sqsSession))
 }

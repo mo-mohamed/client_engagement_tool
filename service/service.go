@@ -1,10 +1,11 @@
 package service
 
 import (
-	interfaces "customer_engagement/service/interfaces"
+	service_i "customer_engagement/service/interfaces"
 )
 
 type Service struct {
-	Group   interfaces.IGroupService
-	Profile interfaces.IProfileService
+	Group     service_i.IGroupService
+	Profile   service_i.IProfileService
+	Broadcast service_i.IBroadcastService
 }
