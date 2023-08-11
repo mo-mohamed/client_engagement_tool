@@ -26,7 +26,7 @@ func (c BroadcastController) InitializeRoutes(r *mux.Router) {
 	r.HandleFunc("/broadcast/sms", c.BroadcastGroup()).Methods("POST")
 }
 
-func (c BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
+func (c BroadcastController) BroadcastGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var bcr vmodels.BroadcastRequest

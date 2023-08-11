@@ -25,7 +25,7 @@ func (c ProfileController) InitializeRoutes(r *mux.Router) {
 	r.HandleFunc("/group/profile/add", c.AddToGroup()).Methods("POST")
 }
 
-func (c ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Request) {
+func (c ProfileController) AddToGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var groupProfileVm vmodels.GroupProfile
 		err := json.NewDecoder(r.Body).Decode(&groupProfileVm)
@@ -44,7 +44,7 @@ func (c ProfileController) AddToGroup() func(w http.ResponseWriter, r *http.Requ
 	}
 }
 
-func (pc ProfileController) Create() func(w http.ResponseWriter, r *http.Request) {
+func (pc ProfileController) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var profileVM vmodels.Profile
 		json.NewDecoder(r.Body).Decode(&profileVM)

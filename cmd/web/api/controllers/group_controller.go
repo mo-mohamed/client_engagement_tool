@@ -53,7 +53,7 @@ func (c GroupController) InitializeRoutes(r *mux.Router) {
 // 	}
 // }
 
-func (c GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
+func (c GroupController) Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var group vmodels.Group
 		err := json.NewDecoder(r.Body).Decode(&group)
@@ -85,7 +85,7 @@ func (c GroupController) Create() func(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (c GroupController) Deactivate() func(w http.ResponseWriter, r *http.Request) {
+func (c GroupController) Deactivate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		groupID, err := strconv.Atoi(vars["id"])
