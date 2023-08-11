@@ -18,10 +18,12 @@ func OpenDatabase() *gorm.DB {
 		"(" + os.Getenv("DB_TEST_HOST") + ":" + os.Getenv("DB_TEST_PORT") + ")/" +
 		os.Getenv("DB_TEST_NAME") + "?" + "parseTime=true&loc=Local"
 
+	fmt.Println("About to start test database connection")
 	db_conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{
 		Logger: logger.Default.LogMode(logger.Silent),
 	})
 	if err != nil {
+		fmt.Println("Failed to connect to the database due to:", err)
 		os.Exit(1)
 	}
 	return db_conn

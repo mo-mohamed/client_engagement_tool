@@ -6,10 +6,10 @@ package viewModels
 import "gopkg.in/go-playground/validator.v9"
 
 type ValidationError struct {
-	Field string
-	Tag   string
-	Value string
-	Type  string
+	Field string `json:"field"`
+	Tag   string `json:"tag"`
+	Value string `json:"value"`
+	Type  string `json:"type"`
 }
 
 func convertErrors(validationError validator.ValidationErrors) []*ValidationError {
