@@ -13,9 +13,9 @@ import (
 
 type Profile struct {
 	ID        int        `json:"id"`
-	FirstName *string    `json:"first_name"`
+	FirstName *string    `json:"first_name" validate:"omitempty,min=10"`
 	LastName  *string    `json:"last_name"`
-	MDN       *string    `json:"mdn"`
+	MDN       *string    `json:"mdn" validate:"required,number"`
 	CreatedAt time.Time  `json:"created_at"`
 	UpdatedAt time.Time  `json:"updated_at"`
 	DeletedAt *time.Time `json:"deleted_at"`
