@@ -6,8 +6,6 @@ import (
 
 	"encoding/json"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type ProfileController struct {
@@ -18,11 +16,6 @@ func NewProfileController(ps *service.Service) *ProfileController {
 	return &ProfileController{
 		service: ps,
 	}
-}
-
-func (c ProfileController) InitializeRoutes(r *mux.Router) {
-	r.HandleFunc("/profile/create", c.Create()).Methods("POST")
-	r.HandleFunc("/group/profile/add", c.AddToGroup()).Methods("POST")
 }
 
 func (c ProfileController) AddToGroup() http.HandlerFunc {

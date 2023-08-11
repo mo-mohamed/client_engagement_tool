@@ -38,10 +38,21 @@ func main() {
 	broadcastController := controllers.NewBroadCastController(serviceLayer)
 
 	router := mux.NewRouter()
-	profileController.InitializeRoutes(router)
-	groupController.InitializeRoutes(router)
-	broadcastController.InitializeRoutes(router)
-	http.Handle("/", router)
+	api := router.PathPrefix("/api").Subrouter()
+	api.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	})
+
+	api1 := api.PathPrefix("/v1").Subrouter()
+	api1.HandleFunc("/group/create", groupController.Create()).Methods("POST")
+	api1.HandleFunc("/group/deactivate/{id}", groupController.Deactivate()).Methods("POST")
+
+	api1.HandleFunc("/profile/create", profileController.Create()).Methods("POST")
+	api1.HandleFunc("/group/profile/add", profileController.AddToGroup()).Methods("POST")
+
+	api1.HandleFunc("/broadcast/sms", broadcastController.BroadcastGroup()).Methods("POST")
+
+	http.Handle("/", api)
 
 	http.ListenAndServe(":8080", router)
 }

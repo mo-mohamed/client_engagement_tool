@@ -8,8 +8,6 @@ import (
 	"encoding/json"
 
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 type BroadcastController struct {
@@ -22,23 +20,19 @@ func NewBroadCastController(service *service.Service) *BroadcastController {
 	}
 }
 
-func (c BroadcastController) InitializeRoutes(r *mux.Router) {
-	r.HandleFunc("/broadcast/sms", c.BroadcastGroup()).Methods("POST")
-}
-
 func (c BroadcastController) BroadcastGroup() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
-		var bcr vmodels.BroadcastRequest
-		json.NewDecoder(r.Body).Decode(&bcr)
-		ok, errors := bcr.Validate()
+		var broadCastRequest vmodels.BroadcastRequest
+		json.NewDecoder(r.Body).Decode(&broadCastRequest)
+		ok, errors := broadCastRequest.Validate()
 		if !ok {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode(errors)
 			return
 		}
 
-		_, err := c.service.Broadcast.EnqueueBroadcastSimpleSmsToGroup(r.Context(), bcr.MessageBody, bcr.GroupId)
+		_, err := c.service.Broadcast.EnqueueBroadcastSimpleSmsToGroup(r.Context(), broadCastRequest.MessageBody, broadCastRequest.GroupId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

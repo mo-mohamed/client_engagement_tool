@@ -51,7 +51,7 @@ func TestProfileController(t *testing.T) {
 			MDN:       &profile_mdn,
 		})
 
-		req, err := http.NewRequest("POST", "/profile/create", bytes.NewBuffer(profile_payload))
+		req, err := http.NewRequest("POST", "/api/v1/profile/create", bytes.NewBuffer(profile_payload))
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			t.Fatal(err)
@@ -107,7 +107,7 @@ func TestProfileController(t *testing.T) {
 			GroupId:   group.ID,
 		})
 
-		req, err := http.NewRequest("POST", "/group/profile/add", bytes.NewBuffer(payload))
+		req, err := http.NewRequest("POST", "/api/v1/group/profile/add", bytes.NewBuffer(payload))
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			t.Fatal(err)
@@ -140,7 +140,7 @@ func TestProfileController(t *testing.T) {
 			FirstName: &profile_first_name,
 		})
 
-		req, err := http.NewRequest("POST", "/profile/create", bytes.NewBuffer(profile_payload))
+		req, err := http.NewRequest("POST", "/api/v1/profile/create", bytes.NewBuffer(profile_payload))
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			t.Fatal(err)

@@ -40,7 +40,7 @@ func TestGroupController(t *testing.T) {
 			Name: &group_name,
 		})
 
-		req, err := http.NewRequest("POST", "/group/create", bytes.NewBuffer(group_payload))
+		req, err := http.NewRequest("POST", "api/v1/group/create", bytes.NewBuffer(group_payload))
 		req.Header.Set("Content-Type", "application/json")
 		if err != nil {
 			t.Fatal(err)
