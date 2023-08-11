@@ -1,5 +1,7 @@
 package interfaces
 
+import "context"
+
 type IBroadcastService interface {
-	EnqueueBroadcastSimpleSmsToGroup(message string, groupId int) (string, error)
+	EnqueueBroadcastSimpleSmsToGroup(ctx context.Context, message string, groupId int) (*string, error)
 }

@@ -22,7 +22,7 @@ func NewSqs(client sqsiface.SQSAPI) queue.IQueueClient {
 }
 
 // Sends a message request to the queue.
-func (s sqsClient) Send(req *queue.SendRequest) (string, error) {
+func (s sqsClient) Send(req *queue.SendRequest) (*string, error) {
 	attrs := make(map[string]*sqs.MessageAttributeValue, len(req.Attributes))
 	for _, attr := range req.Attributes {
 		attrs[attr.Key] = &sqs.MessageAttributeValue{
@@ -38,10 +38,10 @@ func (s sqsClient) Send(req *queue.SendRequest) (string, error) {
 	}
 	res, err := s.client.SendMessage(request)
 	if err != nil {
-		return "", fmt.Errorf("error sending message to the Queue: %w", err)
+		return nil, fmt.Errorf("error sending message to the Queue: %w", err)
 	}
 
-	return *res.MessageId, nil
+	return res.MessageId, nil
 }
 
 // Fetches a message from the requested queue.

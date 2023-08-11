@@ -26,7 +26,7 @@ func (c BroadcastController) InitializeRoutes(r *mux.Router) {
 	r.HandleFunc("/broadcast/sms", c.BroadcastGroup()).Methods("POST")
 }
 
-func (b BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
+func (c BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		var bcr vmodels.BroadcastRequest
@@ -38,13 +38,7 @@ func (b BroadcastController) BroadcastGroup() func(http.ResponseWriter, *http.Re
 			return
 		}
 
-		exists, _ := b.service.Group.Exists(r.Context(), bcr.GroupId)
-		if !exists {
-			http.Error(w, "Group not found", http.StatusNotFound)
-			return
-		}
-
-		_, err := b.service.Broadcast.EnqueueBroadcastSimpleSmsToGroup(bcr.MessageBody, bcr.GroupId)
+		_, err := c.service.Broadcast.EnqueueBroadcastSimpleSmsToGroup(r.Context(), bcr.MessageBody, bcr.GroupId)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return

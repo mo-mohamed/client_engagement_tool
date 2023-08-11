@@ -3,7 +3,7 @@ package queue
 type IQueueClient interface {
 	// Sends a request to the message queue.
 	// Accepts a `SendRequest` pointer.
-	Send(req *SendRequest) (string, error)
+	Send(req *SendRequest) (*string, error)
 
 	// Receieves a single message from the queue.
 	// accepts a queue url.

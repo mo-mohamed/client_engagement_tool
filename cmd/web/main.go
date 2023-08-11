@@ -78,7 +78,7 @@ func initService(store *storeLayer.Store, queueClient queueService.IQueueClient)
 	return &service.Service{
 		Profile:   service.NewProfileService(store),
 		Group:     service.NewGroupService(store),
-		Broadcast: service.NewBroadcastService(queueClient),
+		Broadcast: service.NewBroadcastService(store, queueClient),
 	}
 }
 
