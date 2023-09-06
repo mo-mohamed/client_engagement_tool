@@ -11,15 +11,14 @@ import (
 	"gopkg.in/go-playground/assert.v1"
 )
 
-var (
-	store_db *storeLayer.Store = &storeLayer.Store{
+func TestGroupService(t *testing.T) {
+
+	var storedb *storeLayer.Store = &storeLayer.Store{
 		Profile: storeRepo.NewProfileRepo(testH.DB),
 		Group:   storeRepo.NewGroupRepo(testH.DB),
 	}
-	groupService interfaces.IGroupService = NewGroupService(store_db)
-)
+	var groupService interfaces.IGroupService = NewGroupService(storedb)
 
-func TestGroupService(t *testing.T) {
 	t.Run("successfully create a group", func(t *testing.T) {
 		testH.TruncateTables([]string{"`group`"})
 		_, err := groupService.Create(testH.Ctx, newGroup("group 1"))

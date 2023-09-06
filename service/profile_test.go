@@ -11,15 +11,14 @@ import (
 	"gopkg.in/go-playground/assert.v1"
 )
 
-var (
-	storedb *storeLayer.Store = &storeLayer.Store{
+func TestProfileService(t *testing.T) {
+
+	var storedb *storeLayer.Store = &storeLayer.Store{
 		Profile: storeRepo.NewProfileRepo(testH.DB),
 		Group:   storeRepo.NewGroupRepo(testH.DB),
 	}
-	profileService interfaces.IProfileService = NewProfileService(storedb)
-)
+	var profileService interfaces.IProfileService = NewProfileService(storedb)
 
-func TestProfileService(t *testing.T) {
 	t.Run("successfully create a profile", func(t *testing.T) {
 		testH.TruncateTables([]string{"`profile`"})
 		_, err := profileService.Create(testH.Ctx, newProfile("first", "last", "12343"))
