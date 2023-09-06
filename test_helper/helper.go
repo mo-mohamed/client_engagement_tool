@@ -16,7 +16,7 @@ var Ctx context.Context = context.TODO()
 func OpenDatabase() *gorm.DB {
 	dsn := os.Getenv("DB_TEST_USER") + ":" + os.Getenv("DB_TEST_PASSWORD") + "@tcp" +
 		"(" + os.Getenv("DB_TEST_HOST") + ":" + os.Getenv("DB_TEST_PORT") + ")/" +
-		os.Getenv("DB_TEST_NAME") + "?" + "parseTime=true&loc=Local"
+		os.Getenv("DB_TEST_NAME") + "?" + "parseTime=true"
 
 	fmt.Println("About to start test database connection")
 	db_conn, err := gorm.Open(mysql.Open(dsn), &gorm.Config{

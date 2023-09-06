@@ -60,7 +60,7 @@ func TestSendMessage(t *testing.T) {
 
 		mockClient.EXPECT().SendMessage(request).Return(nil, errors.New("failed to communicate with sqs service"))
 		result, err := sqsClient.Send(&send_request)
-		assert.Equal(t, result, "")
+		assert.Equal(t, result, nil)
 		assert.Equal(t, err.Error(), "error sending message to the Queue: failed to communicate with sqs service")
 	})
 

@@ -53,7 +53,7 @@ func TestGroupRepository(t *testing.T) {
 	})
 
 	t.Run("Get number of profiles per group that were added before a specific time", func(t *testing.T) {
-		testH.TruncateTables([]string{"`group`", "profile", "group_profile"})
+		testH.TruncateTables([]string{"group_profile", "profile", "`group`"})
 		p1, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first", "last", "123"))
 		p2, _ := store.Profile.CreateProfile(testH.Ctx, newProfile("first2", "last2", "12345"))
 		g, _ := store.Group.CreateGroup(testH.Ctx, newGroup("group-name"))
@@ -63,7 +63,9 @@ func TestGroupRepository(t *testing.T) {
 		e = store.Profile.AddProfileToGroup(testH.Ctx, p2.ID, g.ID)
 		assert.Equal(t, e, nil)
 
-		result := store.Group.CountNumberOfProfilesToProcess(testH.Ctx, g.ID, time.Now())
+		time.Sleep(time.Second * 1)
+
+		result := store.Group.CountNumberOfProfilesToProcess(testH.Ctx, g.ID, time.Now().UTC())
 		assert.Equal(t, result, 2)
 
 	})
