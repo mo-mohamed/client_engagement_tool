@@ -7,4 +7,5 @@ import (
 type Store struct {
 	Profile iStore.IProfileRepo
 	Group   iStore.IGroupRepository
+	MT      iStore.IMobileTerminated
 }

@@ -3,9 +3,10 @@
 
 CREATE TABLE IF NOT EXISTS `mobile_terminated` (
     id INTEGER PRIMARY KEY AUTO_INCREMENT,
-    profile_id INTEGER,
-    group_id INTEGER,
-    group_message_uuid VARCHAR(100) NOT NULL,
+    profile_id INTEGER NOT NULL,
+    group_id INTEGER NOT NULL,
+    broadcast_id VARCHAR(100) NOT NULL,
+    processed BOOLEAN DEFAULT False NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     deleted_at DATETIME,
