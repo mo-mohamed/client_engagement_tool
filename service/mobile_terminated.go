@@ -15,7 +15,7 @@ func NewMtService(store storeLayer.Store) *MTService {
 	return &MTService{store: store}
 }
 
-func (mts *MTService) create(ctx context.Context, mt domains.MT) (*domains.MT, error) {
+func (mts *MTService) Create(ctx context.Context, mt domains.MT) (*domains.MT, error) {
 	dbMt, error := mts.store.MT.CreateMT(ctx, mts.toDatabaseEntity(&mt))
 	return mts.toDomain(dbMt), error
 }
